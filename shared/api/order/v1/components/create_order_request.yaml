@@ -1,0 +1,16 @@
+type: object
+required:
+  - user_uuid
+  - part_uuids
+properties:
+  user_uuid:
+    type: string
+    description: user UUID
+    minLength: 1
+    example: "1"
+  part_uuids:
+    type: array
+    items:
+      type: string
+    description: UUIDs of parts
+    example: [ "1", "2", "3" ]

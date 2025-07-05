@@ -1,0 +1,8 @@
+type: string
+description: Payment methods
+enum:
+  - UNKNOWN
+  - CARD
+  - SBP
+  - CREDIT_CARD
+  - INVESTOR_MONEY

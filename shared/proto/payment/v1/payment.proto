@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package payment.v1;
+
+option go_package = "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1;payment_v1";
+
+service PaymentService{
+  // Processes payment and returns transaction_uuid
+  rpc PayOrder(PayOrderRequest) returns(PayOrderResponse);
+}
+// PayOrderRequest
+message PayOrderRequest{
+  // order UUID
+  string order_uuid = 1;
+  // user UUID
+  string user_uuid = 2;
+  // selected payment method
+  PaymentMethod payment_method = 3;
+}
+// PayOrderResponse
+message PayOrderResponse{
+  // transaction UUID
+  string transaction_uuid = 1;
+}
+// payment methods
+enum PaymentMethod {
+  // unknown method
+  UNKNOWN = 0;
+  // debit card
+  CARD = 1;
+  // SBP
+  SBP = 2;
+  // credit card
+  CREDIT_CARD = 3;
+  // investor's money (internal method)
+  INVESTOR_MONEY = 4;
+}

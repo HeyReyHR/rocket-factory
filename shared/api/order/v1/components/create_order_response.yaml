@@ -1,0 +1,15 @@
+type: object
+required:
+  - uuid
+  - total_price
+properties:
+  uuid:
+    type: string
+    description: order UUID
+    minLength: 1
+    example: "1"
+  total_price:
+    type: number
+    format: double
+    description: Estimated cost
+    example: 123.45
