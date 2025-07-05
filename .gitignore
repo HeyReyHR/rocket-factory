@@ -18,8 +18,9 @@
 # vendor/
 
 # env file
+.github
+.idea
 .env
-/.idea
 /.vscode
 /.cursor
 .DS_Store
