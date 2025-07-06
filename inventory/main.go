@@ -11,12 +11,11 @@ import (
 	"sync"
 	"syscall"
 
+	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
-
-	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
 )
 
 const grpcPort = 50051

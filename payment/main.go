@@ -9,11 +9,10 @@ import (
 	"os/signal"
 	"syscall"
 
+	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-
-	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
 )
 
 const grpcPort = 50052

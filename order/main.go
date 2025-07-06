@@ -12,15 +12,14 @@ import (
 	"syscall"
 	"time"
 
+	orderV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/openapi/order/v1"
+	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
+	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	orderV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/openapi/order/v1"
-	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
-	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
 )
 
 const (
@@ -254,7 +253,7 @@ func main() {
 
 	orderServer, err := orderV1.NewServer(orderHandler)
 	if err != nil {
-		log.Fatalf("Error occured when creating OpenAPI server: %s", err)
+		log.Printf("Error occured when creating OpenAPI server: %s", err)
 	}
 
 	r := chi.NewRouter()
