@@ -60,8 +60,9 @@ message Part{
   Manufacturer manufacturer = 7;
   repeated string tags = 8;
   map<string, Value> metadata = 9;
-  google.protobuf.Timestamp created_at = 10;
-  google.protobuf.Timestamp updated_at = 11;
+  Dimensions dimensions = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
 }
 // manufacturer
 message Manufacturer{

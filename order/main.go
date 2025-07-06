@@ -26,27 +26,35 @@ const (
 	paymentServiceAddress   = "localhost:50052"
 	inventoryServiceAddress = "localhost:50051"
 	httpPort                = "8080"
+	requestTimeout          = 5 * time.Second
 	readHeaderTimeout       = 5 * time.Second
 	shutdownTimeout         = 10 * time.Second
 )
 
-type OrderStorage struct {
+type OrderStorageInMem struct {
 	mu     sync.RWMutex
 	orders map[string]*orderV1.OrderDto
 }
+
+type OrderStorage interface {
+	UpdateOrder(orderUUID string, order *orderV1.OrderDto)
+	GetOrder(orderUUID string) *orderV1.OrderDto
+	CreateOrder(orderUUID, userUUID string, partsUUIDs []string, totalPrice float64) *orderV1.OrderDto
+}
+
 type OrderHandler struct {
-	storage   *OrderStorage
+	storage   OrderStorage
 	inventory invV1.InventoryServiceClient
 	payment   payV1.PaymentServiceClient
 }
 
-func NewOrderStorage() *OrderStorage {
-	return &OrderStorage{
+func NewOrderStorage() *OrderStorageInMem {
+	return &OrderStorageInMem{
 		orders: make(map[string]*orderV1.OrderDto),
 	}
 }
 
-func NewOrderHandler(storage *OrderStorage, inventory invV1.InventoryServiceClient, payment payV1.PaymentServiceClient) *OrderHandler {
+func NewOrderHandler(storage *OrderStorageInMem, inventory invV1.InventoryServiceClient, payment payV1.PaymentServiceClient) *OrderHandler {
 	return &OrderHandler{
 		storage:   storage,
 		inventory: inventory,
@@ -54,31 +62,16 @@ func NewOrderHandler(storage *OrderStorage, inventory invV1.InventoryServiceClie
 	}
 }
 
-func convertPayment(method orderV1.PaymentMethod) payV1.PaymentMethod {
-	switch method {
-	case orderV1.PaymentMethodCARD:
-		return payV1.PaymentMethod_CARD
-	case orderV1.PaymentMethodCREDITCARD:
-		return payV1.PaymentMethod_CREDIT_CARD
-	case orderV1.PaymentMethodINVESTORMONEY:
-		return payV1.PaymentMethod_INVESTOR_MONEY
-	case orderV1.PaymentMethodSBP:
-		return payV1.PaymentMethod_SBP
-	default:
-		return payV1.PaymentMethod_UNKNOWN
-	}
-}
-
-func (s *OrderStorage) UpdateOrder(orderUUID string, order *orderV1.OrderDto) {
+func (s *OrderStorageInMem) UpdateOrder(orderUUID string, order *orderV1.OrderDto) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	s.orders[orderUUID] = order
 }
 
-func (s *OrderStorage) GetOrder(orderUUID string) *orderV1.OrderDto {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+func (s *OrderStorageInMem) GetOrder(orderUUID string) *orderV1.OrderDto {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	order, ok := s.orders[orderUUID]
 	if !ok {
@@ -88,7 +81,7 @@ func (s *OrderStorage) GetOrder(orderUUID string) *orderV1.OrderDto {
 	return order
 }
 
-func (s *OrderStorage) CreateOrder(orderUUID, userUUID string, partsUUIDs []string, totalPrice float64) *orderV1.OrderDto {
+func (s *OrderStorageInMem) CreateOrder(orderUUID, userUUID string, partsUUIDs []string, totalPrice float64) *orderV1.OrderDto {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -117,10 +110,14 @@ func (h *OrderHandler) GetOrder(_ context.Context, params orderV1.GetOrderParams
 }
 
 func (h *OrderHandler) PostOrder(ctx context.Context, r *orderV1.CreateOrderRequest) (orderV1.PostOrderRes, error) {
-	resp, err := h.inventory.ListParts(ctx, &invV1.ListPartsRequest{Filter: &invV1.PartsFilter{
+	timeoutCtx, cancel := context.WithTimeout(ctx, requestTimeout)
+	defer cancel()
+
+	resp, err := h.inventory.ListParts(timeoutCtx, &invV1.ListPartsRequest{Filter: &invV1.PartsFilter{
 		Uuids: r.PartUuids,
 	}})
 	if err != nil {
+		log.Printf("ListParts failed: %s", err)
 		return nil, err
 	}
 
@@ -150,10 +147,28 @@ func (h *OrderHandler) PayOrder(ctx context.Context, r *orderV1.OrderPayRequest,
 	if order == nil {
 		return &orderV1.NotFoundError{
 			Code:    404,
-			Message: "Order By UUID " + params.OrderUUID + " not found",
+			Message: "Order with UUID " + params.OrderUUID + " not found",
 		}, nil
 	}
-	payment, err := h.payment.PayOrder(ctx, &payV1.PayOrderRequest{
+
+	if order.Status == orderV1.OrderStatusPAID {
+		return &orderV1.BadRequestError{
+			Code:    400,
+			Message: "Order has already been paid",
+		}, nil
+	}
+
+	if order.Status == orderV1.OrderStatusCANCELLED {
+		return &orderV1.BadRequestError{
+			Code:    400,
+			Message: "Cannot pay cancelled order",
+		}, nil
+	}
+
+	timeoutCtx, cancel := context.WithTimeout(ctx, requestTimeout)
+	defer cancel()
+
+	payment, err := h.payment.PayOrder(timeoutCtx, &payV1.PayOrderRequest{
 		PaymentMethod: convertPayment(r.PaymentMethod),
 		OrderUuid:     order.UUID,
 		UserUuid:      order.UserUUID,
@@ -212,6 +227,21 @@ func (h *OrderHandler) NewError(_ context.Context, err error) *orderV1.InternalS
 			Code:    500,
 			Message: "Internal Server Error: " + err.Error(),
 		},
+	}
+}
+
+func convertPayment(method orderV1.PaymentMethod) payV1.PaymentMethod {
+	switch method {
+	case orderV1.PaymentMethodCARD:
+		return payV1.PaymentMethod_CARD
+	case orderV1.PaymentMethodCREDITCARD:
+		return payV1.PaymentMethod_CREDIT_CARD
+	case orderV1.PaymentMethodINVESTORMONEY:
+		return payV1.PaymentMethod_INVESTOR_MONEY
+	case orderV1.PaymentMethodSBP:
+		return payV1.PaymentMethod_SBP
+	default:
+		return payV1.PaymentMethod_UNKNOWN
 	}
 }
 

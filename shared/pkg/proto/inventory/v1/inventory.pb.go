@@ -421,8 +421,9 @@ type Part struct {
 	Manufacturer  *Manufacturer          `protobuf:"bytes,7,opt,name=manufacturer,proto3" json:"manufacturer,omitempty"`
 	Tags          []string               `protobuf:"bytes,8,rep,name=tags,proto3" json:"tags,omitempty"`
 	Metadata      map[string]*Value      `protobuf:"bytes,9,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Dimensions    *Dimensions            `protobuf:"bytes,10,opt,name=dimensions,proto3" json:"dimensions,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -516,6 +517,13 @@ func (x *Part) GetTags() []string {
 func (x *Part) GetMetadata() map[string]*Value {
 	if x != nil {
 		return x.Metadata
+	}
+	return nil
+}
+
+func (x *Part) GetDimensions() *Dimensions {
+	if x != nil {
+		return x.Dimensions
 	}
 	return nil
 }
@@ -737,7 +745,7 @@ const file_inventory_v1_inventory_proto_rawDesc = "" +
 	"\x06length\x18\x01 \x01(\x01R\x06length\x12\x14\n" +
 	"\x05width\x18\x02 \x01(\x01R\x05width\x12\x16\n" +
 	"\x06height\x18\x03 \x01(\x01R\x06height\x12\x16\n" +
-	"\x06weight\x18\x04 \x01(\x01R\x06weight\"\x9b\x04\n" +
+	"\x06weight\x18\x04 \x01(\x01R\x06weight\"\xd5\x04\n" +
 	"\x04Part\x12\x12\n" +
 	"\x04uuid\x18\x01 \x01(\tR\x04uuid\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -747,12 +755,15 @@ const file_inventory_v1_inventory_proto_rawDesc = "" +
 	"\bcategory\x18\x06 \x01(\x0e2\x16.inventory.v1.CategoryR\bcategory\x12>\n" +
 	"\fmanufacturer\x18\a \x01(\v2\x1a.inventory.v1.ManufacturerR\fmanufacturer\x12\x12\n" +
 	"\x04tags\x18\b \x03(\tR\x04tags\x12<\n" +
-	"\bmetadata\x18\t \x03(\v2 .inventory.v1.Part.MetadataEntryR\bmetadata\x129\n" +
+	"\bmetadata\x18\t \x03(\v2 .inventory.v1.Part.MetadataEntryR\bmetadata\x128\n" +
 	"\n" +
-	"created_at\x18\n" +
-	" \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"dimensions\x18\n" +
+	" \x01(\v2\x18.inventory.v1.DimensionsR\n" +
+	"dimensions\x129\n" +
 	"\n" +
-	"updated_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x1aP\n" +
+	"created_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x1aP\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12)\n" +
 	"\x05value\x18\x02 \x01(\v2\x13.inventory.v1.ValueR\x05value:\x028\x01\"V\n" +
@@ -816,18 +827,19 @@ var file_inventory_v1_inventory_proto_depIdxs = []int32{
 	0,  // 4: inventory.v1.Part.category:type_name -> inventory.v1.Category
 	8,  // 5: inventory.v1.Part.manufacturer:type_name -> inventory.v1.Manufacturer
 	10, // 6: inventory.v1.Part.metadata:type_name -> inventory.v1.Part.MetadataEntry
-	11, // 7: inventory.v1.Part.created_at:type_name -> google.protobuf.Timestamp
-	11, // 8: inventory.v1.Part.updated_at:type_name -> google.protobuf.Timestamp
-	9,  // 9: inventory.v1.Part.MetadataEntry.value:type_name -> inventory.v1.Value
-	3,  // 10: inventory.v1.InventoryService.GetPart:input_type -> inventory.v1.GetPartRequest
-	1,  // 11: inventory.v1.InventoryService.ListParts:input_type -> inventory.v1.ListPartsRequest
-	4,  // 12: inventory.v1.InventoryService.GetPart:output_type -> inventory.v1.GetPartResponse
-	2,  // 13: inventory.v1.InventoryService.ListParts:output_type -> inventory.v1.ListPartsResponse
-	12, // [12:14] is the sub-list for method output_type
-	10, // [10:12] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	6,  // 7: inventory.v1.Part.dimensions:type_name -> inventory.v1.Dimensions
+	11, // 8: inventory.v1.Part.created_at:type_name -> google.protobuf.Timestamp
+	11, // 9: inventory.v1.Part.updated_at:type_name -> google.protobuf.Timestamp
+	9,  // 10: inventory.v1.Part.MetadataEntry.value:type_name -> inventory.v1.Value
+	3,  // 11: inventory.v1.InventoryService.GetPart:input_type -> inventory.v1.GetPartRequest
+	1,  // 12: inventory.v1.InventoryService.ListParts:input_type -> inventory.v1.ListPartsRequest
+	4,  // 13: inventory.v1.InventoryService.GetPart:output_type -> inventory.v1.GetPartResponse
+	2,  // 14: inventory.v1.InventoryService.ListParts:output_type -> inventory.v1.ListPartsResponse
+	13, // [13:15] is the sub-list for method output_type
+	11, // [11:13] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_inventory_v1_inventory_proto_init() }

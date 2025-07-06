@@ -22,45 +22,67 @@ const grpcPort = 50051
 
 type inventoryService struct {
 	invV1.UnimplementedInventoryServiceServer
-
+	inventory InventoryStorage
+}
+type InventoryStorageInMem struct {
 	mu        sync.RWMutex
 	inventory map[string]*invV1.Part
 }
+type InventoryStorage interface {
+	Part(uuid string) (*invV1.Part, error)
+	Parts(filter *invV1.PartsFilter) ([]*invV1.Part, error)
+}
+
+func (storage *InventoryStorageInMem) Part(uuid string) (*invV1.Part, error) {
+	storage.mu.RLock()
+	defer storage.mu.RUnlock()
+	part, ok := storage.inventory[uuid]
+	if !ok {
+		return nil, status.Errorf(codes.NotFound, "part with UUID %s not found", uuid)
+	}
+	return part, nil
+}
+
+func (storage *InventoryStorageInMem) Parts(filter *invV1.PartsFilter) ([]*invV1.Part, error) {
+	storage.mu.Lock()
+	defer storage.mu.Unlock()
+	var parts []*invV1.Part
+	for _, part := range storage.inventory {
+		parts = append(parts, part)
+	}
+
+	filteredParts := storage.filterParts(parts, filter)
+	return filteredParts, nil
+}
 
 func (s *inventoryService) GetPart(_ context.Context, r *invV1.GetPartRequest) (*invV1.GetPartResponse, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	part, ok := s.inventory[r.GetUuid()]
-	if !ok {
-		return nil, status.Errorf(codes.NotFound, "part with UUID %s not found", r.GetUuid())
+	part, err := s.inventory.Part(r.GetUuid())
+	if err != nil {
+		log.Printf("GetPart failed for UUID %s: %v", r.GetUuid(), err)
+		return nil, err
 	}
+
 	return &invV1.GetPartResponse{
 		Part: part,
 	}, nil
 }
 
 func (s *inventoryService) ListParts(_ context.Context, r *invV1.ListPartsRequest) (*invV1.ListPartsResponse, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	var parts []*invV1.Part
-	for _, part := range s.inventory {
-		parts = append(parts, part)
+	filteredParts, err := s.inventory.Parts(r.Filter)
+	if err != nil {
+		log.Printf("GetParts failed: %v", err)
+		return nil, err
 	}
-
-	filteredParts := s.filterParts(parts, r.Filter)
 
 	return &invV1.ListPartsResponse{
 		Parts: filteredParts,
 	}, nil
 }
 
-func (s *inventoryService) filterParts(parts []*invV1.Part, filter *invV1.PartsFilter) []*invV1.Part {
+func (storage *InventoryStorageInMem) filterParts(parts []*invV1.Part, filter *invV1.PartsFilter) []*invV1.Part {
 	var result []*invV1.Part
-
 	for _, part := range parts {
-		if s.matchesFilter(part, filter) {
+		if storage.matchesFilter(part, filter) {
 			result = append(result, part)
 		}
 	}
@@ -68,15 +90,15 @@ func (s *inventoryService) filterParts(parts []*invV1.Part, filter *invV1.PartsF
 	return result
 }
 
-func (s *inventoryService) matchesFilter(part *invV1.Part, filter *invV1.PartsFilter) bool {
-	return s.matchesUUIDs(part, filter.Uuids) &&
-		s.matchesNames(part, filter.Names) &&
-		s.matchesCountries(part, filter.ManufacturerCountries) &&
-		s.matchesCategories(part, filter.Categories) &&
-		s.matchesTags(part, filter.Tags)
+func (storage *InventoryStorageInMem) matchesFilter(part *invV1.Part, filter *invV1.PartsFilter) bool {
+	return storage.matchesUUIDs(part, filter.Uuids) &&
+		storage.matchesNames(part, filter.Names) &&
+		storage.matchesCountries(part, filter.ManufacturerCountries) &&
+		storage.matchesCategories(part, filter.Categories) &&
+		storage.matchesTags(part, filter.Tags)
 }
 
-func (s *inventoryService) matchesUUIDs(part *invV1.Part, uuids []string) bool {
+func (storage *InventoryStorageInMem) matchesUUIDs(part *invV1.Part, uuids []string) bool {
 	if uuids == nil {
 		return true
 	}
@@ -90,7 +112,7 @@ func (s *inventoryService) matchesUUIDs(part *invV1.Part, uuids []string) bool {
 	return false
 }
 
-func (s *inventoryService) matchesNames(part *invV1.Part, names []string) bool {
+func (storage *InventoryStorageInMem) matchesNames(part *invV1.Part, names []string) bool {
 	if names == nil {
 		return true
 	}
@@ -105,7 +127,7 @@ func (s *inventoryService) matchesNames(part *invV1.Part, names []string) bool {
 	return false
 }
 
-func (s *inventoryService) matchesCountries(part *invV1.Part, countries []string) bool {
+func (storage *InventoryStorageInMem) matchesCountries(part *invV1.Part, countries []string) bool {
 	if countries == nil {
 		return true
 	}
@@ -119,7 +141,7 @@ func (s *inventoryService) matchesCountries(part *invV1.Part, countries []string
 	return false
 }
 
-func (s *inventoryService) matchesCategories(part *invV1.Part, categories []invV1.Category) bool {
+func (storage *InventoryStorageInMem) matchesCategories(part *invV1.Part, categories []invV1.Category) bool {
 	if categories == nil {
 		return true
 	}
@@ -133,7 +155,7 @@ func (s *inventoryService) matchesCategories(part *invV1.Part, categories []invV
 	return false
 }
 
-func (s *inventoryService) matchesTags(part *invV1.Part, filterTags []string) bool {
+func (storage *InventoryStorageInMem) matchesTags(part *invV1.Part, filterTags []string) bool {
 	if filterTags == nil {
 		return true
 	}
@@ -163,119 +185,76 @@ func main() {
 	}()
 
 	s := grpc.NewServer()
-	service := &inventoryService{
+
+	storage := &InventoryStorageInMem{
 		inventory: map[string]*invV1.Part{
-			"1": {
-				Uuid:          "1",
-				Name:          "Raptor Engine V2",
-				Description:   "Метановый ракетный двигатель полного сгорания",
-				Price:         2500000.0,
-				StockQuantity: 15,
+			"engine-001": {
+				Uuid:          "engine-001",
+				Name:          "Rocket Engine V1",
+				Description:   "High-performance rocket engine",
+				Price:         15000.50,
+				StockQuantity: 10,
 				Category:      invV1.Category_ENGINE,
 				Manufacturer: &invV1.Manufacturer{
-					Name:    "SpaceX",
+					Name:    "RocketCorp",
 					Country: "USA",
-					Website: "https://spacex.com",
+					Website: "https://rocketcorp.com",
 				},
-				Tags: []string{"methane", "reusable", "high-performance"},
-				Metadata: map[string]*invV1.Value{
-					"thrust": {
-						ValueType: &invV1.Value_StringValue{StringValue: "2300 kN"},
-					},
-					"isp_vacuum": {
-						ValueType: &invV1.Value_Int64Value{Int64Value: 380},
-					},
-					"mass": {
-						ValueType: &invV1.Value_DoubleValue{DoubleValue: 1600.0},
-					},
-					"reusable": {
-						ValueType: &invV1.Value_BoolValue{BoolValue: true},
-					},
+				Tags: []string{"engine", "high-performance"},
+				Dimensions: &invV1.Dimensions{
+					Length: 2.5,
+					Width:  1.0,
+					Height: 1.0,
+					Weight: 500.0,
 				},
 			},
-			"2": {
-				Uuid:          "2",
-				Name:          "RP-1 Fuel Tank",
-				Description:   "Алюминиевый топливный бак для керосина RP-1",
-				Price:         450000.0,
-				StockQuantity: 8,
+			"fuel-001": {
+				Uuid:          "fuel-001",
+				Name:          "Liquid Fuel Tank",
+				Description:   "High-capacity fuel storage",
+				Price:         8500.00,
+				StockQuantity: 25,
 				Category:      invV1.Category_FUEL,
 				Manufacturer: &invV1.Manufacturer{
-					Name:    "Blue Origin",
-					Country: "USA",
-					Website: "https://blueorigin.com",
+					Name:    "FuelTech",
+					Country: "Germany",
+					Website: "https://fueltech.de",
 				},
-				Tags: []string{"fuel-tank", "aluminum", "rp1"},
-				Metadata: map[string]*invV1.Value{
-					"capacity": {
-						ValueType: &invV1.Value_StringValue{StringValue: "150000 L"},
-					},
-					"max_pressure": {
-						ValueType: &invV1.Value_DoubleValue{DoubleValue: 2.5},
-					},
-					"empty_weight": {
-						ValueType: &invV1.Value_DoubleValue{DoubleValue: 2500.0},
-					},
+				Tags: []string{"fuel", "liquid"},
+				Dimensions: &invV1.Dimensions{
+					Length: 3.0,
+					Width:  1.5,
+					Height: 1.5,
+					Weight: 200.0,
 				},
 			},
-			"3": {
-				Uuid:          "3",
-				Name:          "Dragon Porthole Window",
-				Description:   "Круглое окно для космического корабля Dragon",
-				Price:         75000.0,
-				StockQuantity: 25,
-				Category:      invV1.Category_PORTHOLE,
-				Manufacturer: &invV1.Manufacturer{
-					Name:    "SpaceX",
-					Country: "CHINA",
-					Website: "https://spacex.com",
-				},
-				Tags: []string{"window", "transparent", "pressurized", "lol"},
-				Metadata: map[string]*invV1.Value{
-					"diameter": {
-						ValueType: &invV1.Value_StringValue{StringValue: "45 cm"},
-					},
-					"thickness": {
-						ValueType: &invV1.Value_DoubleValue{DoubleValue: 5.0},
-					},
-					"material": {
-						ValueType: &invV1.Value_StringValue{StringValue: "Borosilicate glass"},
-					},
-					"pressure_rating": {
-						ValueType: &invV1.Value_DoubleValue{DoubleValue: 1.5},
-					},
-				},
-			},
-			"4": {
-				Uuid:          "4",
-				Name:          "Grid Fin Assembly",
-				Description:   "Аэродинамическое крыло для управления при возвращении",
-				Price:         185000.0,
-				StockQuantity: 12,
+			"wing-001": {
+				Uuid:          "wing-001",
+				Name:          "Stabilizer Wing",
+				Description:   "Aerodynamic stabilizer wing",
+				Price:         3200.75,
+				StockQuantity: 15,
 				Category:      invV1.Category_WING,
 				Manufacturer: &invV1.Manufacturer{
-					Name:    "SpaceX",
-					Country: "USA",
-					Website: "https://spacex.com",
+					Name:    "AeroWings",
+					Country: "France",
+					Website: "https://aerowings.fr",
 				},
-				Tags: []string{"grid-fin", "titanium", "reentry", "lol"},
-				Metadata: map[string]*invV1.Value{
-					"material": {
-						ValueType: &invV1.Value_StringValue{StringValue: "Titanium"},
-					},
-					"fin_count": {
-						ValueType: &invV1.Value_Int64Value{Int64Value: 4},
-					},
-					"max_temperature": {
-						ValueType: &invV1.Value_DoubleValue{DoubleValue: 1200.0},
-					},
-					"deployable": {
-						ValueType: &invV1.Value_BoolValue{BoolValue: true},
-					},
+				Tags: []string{"wing", "stabilizer"},
+				Dimensions: &invV1.Dimensions{
+					Length: 2.0,
+					Width:  0.5,
+					Height: 0.1,
+					Weight: 50.0,
 				},
 			},
 		},
 	}
+
+	service := &inventoryService{
+		inventory: storage,
+	}
+
 	invV1.RegisterInventoryServiceServer(s, service)
 
 	reflection.Register(s)
