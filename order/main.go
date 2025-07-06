@@ -3,14 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	orderV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/openapi/order/v1"
-	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
-	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/google/uuid"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
 	"net/http"
@@ -19,6 +11,16 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/google/uuid"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
+	orderV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/openapi/order/v1"
+	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
+	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
 )
 
 const (
@@ -44,13 +46,13 @@ func NewOrderStorage() *OrderStorage {
 		orders: make(map[string]*orderV1.OrderDto),
 	}
 }
+
 func NewOrderHandler(storage *OrderStorage, inventory invV1.InventoryServiceClient, payment payV1.PaymentServiceClient) *OrderHandler {
 	return &OrderHandler{
 		storage:   storage,
 		inventory: inventory,
 		payment:   payment,
 	}
-
 }
 
 func convertPayment(method orderV1.PaymentMethod) payV1.PaymentMethod {
@@ -74,6 +76,7 @@ func (s *OrderStorage) UpdateOrder(orderUUID string, order *orderV1.OrderDto) {
 
 	s.orders[orderUUID] = order
 }
+
 func (s *OrderStorage) GetOrder(orderUUID string) *orderV1.OrderDto {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -85,7 +88,8 @@ func (s *OrderStorage) GetOrder(orderUUID string) *orderV1.OrderDto {
 
 	return order
 }
-func (s *OrderStorage) CreateOrder(orderUUID string, userUUID string, partsUUIDs []string, totalPrice float64) *orderV1.OrderDto {
+
+func (s *OrderStorage) CreateOrder(orderUUID, userUUID string, partsUUIDs []string, totalPrice float64) *orderV1.OrderDto {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -101,6 +105,7 @@ func (s *OrderStorage) CreateOrder(orderUUID string, userUUID string, partsUUIDs
 
 	return order
 }
+
 func (h *OrderHandler) GetOrder(_ context.Context, params orderV1.GetOrderParams) (orderV1.GetOrderRes, error) {
 	order := h.storage.GetOrder(params.OrderUUID)
 	if order == nil {
@@ -111,8 +116,8 @@ func (h *OrderHandler) GetOrder(_ context.Context, params orderV1.GetOrderParams
 	}
 	return order, nil
 }
-func (h *OrderHandler) PostOrder(ctx context.Context, r *orderV1.CreateOrderRequest) (orderV1.PostOrderRes, error) {
 
+func (h *OrderHandler) PostOrder(ctx context.Context, r *orderV1.CreateOrderRequest) (orderV1.PostOrderRes, error) {
 	resp, err := h.inventory.ListParts(ctx, &invV1.ListPartsRequest{Filter: &invV1.PartsFilter{
 		Uuids: r.PartUuids,
 	}})
@@ -179,7 +184,6 @@ func (h *OrderHandler) PayOrder(ctx context.Context, r *orderV1.OrderPayRequest,
 }
 
 func (h *OrderHandler) CancelOrder(_ context.Context, params orderV1.CancelOrderParams) (orderV1.CancelOrderRes, error) {
-
 	order := h.storage.GetOrder(params.OrderUUID)
 	if order == nil {
 		return &orderV1.NotFoundError{
@@ -201,6 +205,7 @@ func (h *OrderHandler) CancelOrder(_ context.Context, params orderV1.CancelOrder
 
 	return &orderV1.CancelOrderNoContent{}, nil
 }
+
 func (h *OrderHandler) NewError(_ context.Context, err error) *orderV1.InternalServerErrorStatusCode {
 	return &orderV1.InternalServerErrorStatusCode{
 		StatusCode: 500,
@@ -210,9 +215,8 @@ func (h *OrderHandler) NewError(_ context.Context, err error) *orderV1.InternalS
 		},
 	}
 }
-func main() {
-	ctx := context.Background()
 
+func main() {
 	connPay, err := grpc.NewClient(
 		paymentServiceAddress,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -233,7 +237,7 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		log.Fatalf("failed to connect to inventory service: %s", err)
+		log.Printf("failed to connect to inventory service: %s", err)
 	}
 
 	defer func() {

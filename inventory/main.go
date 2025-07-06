@@ -3,11 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/reflection"
-	"google.golang.org/grpc/status"
 	"log"
 	"net"
 	"os"
@@ -15,6 +10,13 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
+
+	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
 )
 
 const grpcPort = 50051
@@ -42,87 +44,110 @@ func (s *inventoryService) GetPart(_ context.Context, r *invV1.GetPartRequest) (
 func (s *inventoryService) ListParts(_ context.Context, r *invV1.ListPartsRequest) (*invV1.ListPartsResponse, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	var parts []*invV1.Part
 
+	var parts []*invV1.Part
 	for _, part := range s.inventory {
 		parts = append(parts, part)
 	}
 
-	var filteredParts []*invV1.Part
-	for _, part := range parts {
-		includeItem := true
+	filteredParts := s.filterParts(parts, r.Filter)
 
-		if r.Filter.Uuids != nil {
-			uuidMatch := false
-			for _, uuid := range r.Filter.Uuids {
-				if strings.EqualFold(part.Uuid, uuid) {
-					fmt.Println(part.Uuid, uuid)
-					uuidMatch = true
-					break
-				}
-			}
-			if !uuidMatch {
-				includeItem = false
-			}
-		}
-
-		if r.Filter.Names != nil {
-			nameMatch := false
-			for _, name := range r.Filter.Names {
-				if strings.Contains(strings.ToLower(part.Name), strings.ToLower(name)) {
-					nameMatch = true
-					break
-				}
-			}
-			if !nameMatch {
-				includeItem = false
-			}
-		}
-		if r.Filter.ManufacturerCountries != nil && includeItem {
-			countryMatch := false
-			for _, country := range r.Filter.ManufacturerCountries {
-				if strings.EqualFold(part.Manufacturer.Country, country) {
-					countryMatch = true
-					break
-				}
-			}
-			if !countryMatch {
-				includeItem = false
-			}
-		}
-		if r.Filter.Categories != nil && includeItem {
-			categoryMatch := false
-			for _, category := range r.Filter.Categories {
-				if strings.EqualFold(part.Category.String(), category.String()) {
-					categoryMatch = true
-					break
-				}
-			}
-			if !categoryMatch {
-				includeItem = false
-			}
-		}
-		if r.Filter.Tags != nil && includeItem {
-			tagMatch := false
-			for _, Ftag := range r.Filter.Tags {
-				for _, Ptag := range part.Tags {
-					if strings.EqualFold(Ptag, Ftag) {
-						tagMatch = true
-						break
-					}
-				}
-			}
-			if !tagMatch {
-				includeItem = false
-			}
-		}
-		if includeItem {
-			filteredParts = append(filteredParts, part)
-		}
-	}
 	return &invV1.ListPartsResponse{
 		Parts: filteredParts,
 	}, nil
+}
+
+func (s *inventoryService) filterParts(parts []*invV1.Part, filter *invV1.PartsFilter) []*invV1.Part {
+	var result []*invV1.Part
+
+	for _, part := range parts {
+		if s.matchesFilter(part, filter) {
+			result = append(result, part)
+		}
+	}
+
+	return result
+}
+
+func (s *inventoryService) matchesFilter(part *invV1.Part, filter *invV1.PartsFilter) bool {
+	return s.matchesUUIDs(part, filter.Uuids) &&
+		s.matchesNames(part, filter.Names) &&
+		s.matchesCountries(part, filter.ManufacturerCountries) &&
+		s.matchesCategories(part, filter.Categories) &&
+		s.matchesTags(part, filter.Tags)
+}
+
+func (s *inventoryService) matchesUUIDs(part *invV1.Part, uuids []string) bool {
+	if uuids == nil {
+		return true
+	}
+
+	for _, uuid := range uuids {
+		if strings.EqualFold(part.Uuid, uuid) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *inventoryService) matchesNames(part *invV1.Part, names []string) bool {
+	if names == nil {
+		return true
+	}
+
+	partNameLower := strings.ToLower(part.Name)
+	for _, name := range names {
+		if strings.Contains(partNameLower, strings.ToLower(name)) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *inventoryService) matchesCountries(part *invV1.Part, countries []string) bool {
+	if countries == nil {
+		return true
+	}
+
+	for _, country := range countries {
+		if strings.EqualFold(part.Manufacturer.Country, country) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *inventoryService) matchesCategories(part *invV1.Part, categories []invV1.Category) bool {
+	if categories == nil {
+		return true
+	}
+
+	for _, category := range categories {
+		if strings.EqualFold(part.Category.String(), category.String()) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *inventoryService) matchesTags(part *invV1.Part, filterTags []string) bool {
+	if filterTags == nil {
+		return true
+	}
+
+	for _, filterTag := range filterTags {
+		for _, partTag := range part.Tags {
+			if strings.EqualFold(partTag, filterTag) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func main() {

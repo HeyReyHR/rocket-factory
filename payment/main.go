@@ -3,33 +3,33 @@ package main
 import (
 	"context"
 	"fmt"
-	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
-	"github.com/google/uuid"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
+
+	"github.com/google/uuid"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+
+	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
 )
 
 const grpcPort = 50052
 
 type paymentService struct {
 	payV1.UnimplementedPaymentServiceServer
-
-	mu sync.RWMutex
 }
 
 func (s *paymentService) PayOrder(_ context.Context, r *payV1.PayOrderRequest) (*payV1.PayOrderResponse, error) {
 	transactionUuid := uuid.NewString()
-	fmt.Printf("Payment has been succeded, transaction_uuid: %s", transactionUuid)
+	log.Printf("Payment has been succeded, transaction_uuid: %s\n", transactionUuid)
 	return &payV1.PayOrderResponse{
 		TransactionUuid: transactionUuid,
 	}, nil
 }
+
 func main() {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
@@ -64,5 +64,4 @@ func main() {
 	log.Println("🛑 Shutting down payment service...")
 	s.GracefulStop()
 	log.Println("✅ Payment service stopped")
-
 }
