@@ -17,11 +17,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
 
+      - name: Make script executable
+        run: chmod +x .github/scripts/extract_versions.sh
+
       - name: Extract variables from Taskfile
         id: extract
         run: |
-          chmod +x .github/scripts/extract-versions.sh
-          .github/scripts/extract-versions.sh
+          chmod +x .github/scripts/extract_versions.sh
+          .github/scripts/extract_versions.sh
 
   lint:
     needs: extract-vars
