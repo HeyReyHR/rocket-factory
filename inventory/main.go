@@ -117,7 +117,6 @@ func (storage *InventoryStorageInMem) Part(uuid string) (*invV1.Part, error) {
 }
 
 func (storage *InventoryStorageInMem) Parts(filter *invV1.PartsFilter) ([]*invV1.Part, error) {
-
 	storage.mu.RLock()
 
 	var parts []*invV1.Part
@@ -165,7 +164,6 @@ func (storage *InventoryStorageInMem) filterParts(parts []*invV1.Part, filterReq
 	for _, part := range parts {
 		needAdd := false
 		for _, filter := range filters {
-			fmt.Println(filter(part))
 			if filter(part) {
 				needAdd = true
 				break
@@ -182,7 +180,6 @@ func (storage *InventoryStorageInMem) filterParts(parts []*invV1.Part, filterReq
 func makeFilters(filterReq *invV1.PartsFilter) []filter {
 	filters := []filter{
 		func(part *invV1.Part) bool {
-			fmt.Println(filterReq.GetUuids(), part.Uuid, slices.Contains(filterReq.GetUuids(), part.Uuid))
 			return slices.Contains(filterReq.GetUuids(), part.Uuid)
 		},
 		func(part *invV1.Part) bool {

@@ -49,7 +49,6 @@ func main() {
 	s := grpc.NewServer()
 
 	service := NewPaymentService()
-	
 	payV1.RegisterPaymentServiceServer(s, service)
 
 	reflection.Register(s)
