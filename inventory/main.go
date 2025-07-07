@@ -119,9 +119,19 @@ func (storage *InventoryStorageInMem) Part(uuid string) (*invV1.Part, error) {
 func (storage *InventoryStorageInMem) Parts(filter *invV1.PartsFilter) ([]*invV1.Part, error) {
 	storage.mu.RLock()
 
-	var parts []*invV1.Part
+	var parts []invV1.Part
 	for _, part := range storage.inventory {
-		parts = append(parts, part)
+		parts = append(parts, invV1.Part{
+			Uuid:          part.Uuid,
+			Name:          part.Name,
+			Description:   part.Description,
+			Price:         part.Price,
+			StockQuantity: part.StockQuantity,
+			Category:      part.Category,
+			Manufacturer:  part.Manufacturer,
+			Tags:          part.Tags,
+			Dimensions:    part.Dimensions,
+		})
 	}
 
 	storage.mu.RUnlock()
@@ -156,21 +166,21 @@ func (s *InventoryService) ListParts(_ context.Context, r *invV1.ListPartsReques
 
 type filter func(part *invV1.Part) bool
 
-func (storage *InventoryStorageInMem) filterParts(parts []*invV1.Part, filterReq *invV1.PartsFilter) []*invV1.Part {
+func (storage *InventoryStorageInMem) filterParts(parts []invV1.Part, filterReq *invV1.PartsFilter) []*invV1.Part {
 	var result []*invV1.Part
 
 	filters := makeFilters(filterReq)
 
-	for _, part := range parts {
-		needAdd := false
+	for i := range parts {
+		needAdd := true
 		for _, filter := range filters {
-			if filter(part) {
-				needAdd = true
+			if !filter(&parts[i]) {
+				needAdd = false
 				break
 			}
 		}
 		if needAdd {
-			result = append(result, part)
+			result = append(result, &parts[i])
 		}
 	}
 
@@ -178,28 +188,43 @@ func (storage *InventoryStorageInMem) filterParts(parts []*invV1.Part, filterReq
 }
 
 func makeFilters(filterReq *invV1.PartsFilter) []filter {
-	filters := []filter{
-		func(part *invV1.Part) bool {
+	var filters []filter
+
+	if len(filterReq.GetUuids()) > 0 {
+		filters = append(filters, func(part *invV1.Part) bool {
 			return slices.Contains(filterReq.GetUuids(), part.Uuid)
-		},
-		func(part *invV1.Part) bool {
+		})
+	}
+
+	if len(filterReq.GetNames()) > 0 {
+		filters = append(filters, func(part *invV1.Part) bool {
 			return slices.Contains(filterReq.GetNames(), part.Name)
-		},
-		func(part *invV1.Part) bool {
+		})
+	}
+
+	if len(filterReq.GetCategories()) > 0 {
+		filters = append(filters, func(part *invV1.Part) bool {
 			return slices.Contains(filterReq.GetCategories(), part.Category)
-		},
-		func(part *invV1.Part) bool {
+		})
+	}
+
+	if len(filterReq.GetManufacturerCountries()) > 0 {
+		filters = append(filters, func(part *invV1.Part) bool {
 			return slices.Contains(filterReq.GetManufacturerCountries(), part.GetManufacturer().GetCountry())
-		},
-		func(part *invV1.Part) bool {
+		})
+	}
+
+	if len(filterReq.GetTags()) > 0 {
+		filters = append(filters, func(part *invV1.Part) bool {
 			for _, tag := range part.GetTags() {
 				if slices.Contains(filterReq.GetTags(), tag) {
 					return true
 				}
 			}
 			return false
-		},
+		})
 	}
+
 	return filters
 }
 
