@@ -118,7 +118,10 @@ func (h *OrderHandler) PostOrder(ctx context.Context, r *orderV1.CreateOrderRequ
 	}})
 	if err != nil {
 		log.Printf("ListParts failed: %s", err)
-		return nil, err
+		return &orderV1.InternalServerError{
+			Code:    500,
+			Message: "Internal server error: " + err.Error(),
+		}, nil
 	}
 
 	if len(resp.Parts) != len(r.PartUuids) {
@@ -220,12 +223,12 @@ func (h *OrderHandler) CancelOrder(_ context.Context, params orderV1.CancelOrder
 	return &orderV1.CancelOrderNoContent{}, nil
 }
 
-func (h *OrderHandler) NewError(_ context.Context, err error) *orderV1.InternalServerErrorStatusCode {
-	return &orderV1.InternalServerErrorStatusCode{
-		StatusCode: 500,
-		Response: orderV1.InternalServerError{
-			Code:    500,
-			Message: "Internal Server Error: " + err.Error(),
+func (h *OrderHandler) NewError(_ context.Context, err error) *orderV1.GenericErrorStatusCode {
+	return &orderV1.GenericErrorStatusCode{
+		StatusCode: http.StatusInternalServerError,
+		Response: orderV1.GenericError{
+			Code:    orderV1.NewOptInt(http.StatusInternalServerError),
+			Message: orderV1.NewOptString(err.Error()),
 		},
 	}
 }

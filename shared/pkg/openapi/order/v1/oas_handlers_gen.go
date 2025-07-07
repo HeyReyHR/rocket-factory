@@ -154,7 +154,7 @@ func (s *Server) handleCancelOrderRequest(args [1]string, argsEscaped bool, w ht
 		response, err = s.h.CancelOrder(ctx, params)
 	}
 	if err != nil {
-		if errRes, ok := errors.Into[*InternalServerErrorStatusCode](err); ok {
+		if errRes, ok := errors.Into[*GenericErrorStatusCode](err); ok {
 			if err := encodeErrorResponse(errRes, w, span); err != nil {
 				defer recordError("Internal", err)
 			}
@@ -303,7 +303,7 @@ func (s *Server) handleGetOrderRequest(args [1]string, argsEscaped bool, w http.
 		response, err = s.h.GetOrder(ctx, params)
 	}
 	if err != nil {
-		if errRes, ok := errors.Into[*InternalServerErrorStatusCode](err); ok {
+		if errRes, ok := errors.Into[*GenericErrorStatusCode](err); ok {
 			if err := encodeErrorResponse(errRes, w, span); err != nil {
 				defer recordError("Internal", err)
 			}
@@ -467,7 +467,7 @@ func (s *Server) handlePayOrderRequest(args [1]string, argsEscaped bool, w http.
 		response, err = s.h.PayOrder(ctx, request, params)
 	}
 	if err != nil {
-		if errRes, ok := errors.Into[*InternalServerErrorStatusCode](err); ok {
+		if errRes, ok := errors.Into[*GenericErrorStatusCode](err); ok {
 			if err := encodeErrorResponse(errRes, w, span); err != nil {
 				defer recordError("Internal", err)
 			}
@@ -616,7 +616,7 @@ func (s *Server) handlePostOrderRequest(args [0]string, argsEscaped bool, w http
 		response, err = s.h.PostOrder(ctx, request)
 	}
 	if err != nil {
-		if errRes, ok := errors.Into[*InternalServerErrorStatusCode](err); ok {
+		if errRes, ok := errors.Into[*GenericErrorStatusCode](err); ok {
 			if err := encodeErrorResponse(errRes, w, span); err != nil {
 				defer recordError("Internal", err)
 			}

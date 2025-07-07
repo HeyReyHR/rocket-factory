@@ -49,10 +49,10 @@ func (UnimplementedHandler) PostOrder(ctx context.Context, req *CreateOrderReque
 	return r, ht.ErrNotImplemented
 }
 
-// NewError creates *InternalServerErrorStatusCode from error returned by handler.
+// NewError creates *GenericErrorStatusCode from error returned by handler.
 //
 // Used for common default response.
-func (UnimplementedHandler) NewError(ctx context.Context, err error) (r *InternalServerErrorStatusCode) {
-	r = new(InternalServerErrorStatusCode)
+func (UnimplementedHandler) NewError(ctx context.Context, err error) (r *GenericErrorStatusCode) {
+	r = new(GenericErrorStatusCode)
 	return r
 }

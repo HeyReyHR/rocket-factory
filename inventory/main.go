@@ -44,12 +44,15 @@ func (storage *InventoryStorageInMem) Part(uuid string) (*invV1.Part, error) {
 }
 
 func (storage *InventoryStorageInMem) Parts(filter *invV1.PartsFilter) ([]*invV1.Part, error) {
-	storage.mu.Lock()
-	defer storage.mu.Unlock()
+
+	storage.mu.RLock()
+
 	var parts []*invV1.Part
 	for _, part := range storage.inventory {
 		parts = append(parts, part)
 	}
+
+	storage.mu.RUnlock()
 
 	filteredParts := storage.filterParts(parts, filter)
 	return filteredParts, nil
@@ -59,7 +62,7 @@ func (s *inventoryService) GetPart(_ context.Context, r *invV1.GetPartRequest) (
 	part, err := s.inventory.Part(r.GetUuid())
 	if err != nil {
 		log.Printf("GetPart failed for UUID %s: %v", r.GetUuid(), err)
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "GetPart failed for UUID %s: %v", r.GetUuid(), err)
 	}
 
 	return &invV1.GetPartResponse{
@@ -71,7 +74,7 @@ func (s *inventoryService) ListParts(_ context.Context, r *invV1.ListPartsReques
 	filteredParts, err := s.inventory.Parts(r.Filter)
 	if err != nil {
 		log.Printf("GetParts failed: %v", err)
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "GetParts failed: %v", err)
 	}
 
 	return &invV1.ListPartsResponse{
