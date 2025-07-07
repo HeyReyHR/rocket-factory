@@ -54,7 +54,7 @@ func NewOrderStorage() *OrderStorageInMem {
 	}
 }
 
-func NewOrderHandler(storage *OrderStorageInMem, inventory invV1.InventoryServiceClient, payment payV1.PaymentServiceClient) *OrderHandler {
+func NewOrderHandler(storage OrderStorage, inventory invV1.InventoryServiceClient, payment payV1.PaymentServiceClient) *OrderHandler {
 	return &OrderHandler{
 		storage:   storage,
 		inventory: inventory,
@@ -154,18 +154,19 @@ func (h *OrderHandler) PayOrder(ctx context.Context, r *orderV1.OrderPayRequest,
 		}, nil
 	}
 
-	if order.Status == orderV1.OrderStatusPAID {
+	switch order.Status {
+	case orderV1.OrderStatusPAID:
 		return &orderV1.BadRequestError{
 			Code:    400,
 			Message: "Order has already been paid",
 		}, nil
-	}
-
-	if order.Status == orderV1.OrderStatusCANCELLED {
-		return &orderV1.BadRequestError{
-			Code:    400,
-			Message: "Cannot pay cancelled order",
-		}, nil
+	case orderV1.OrderStatusCANCELLED:
+		if order.Status == orderV1.OrderStatusCANCELLED {
+			return &orderV1.BadRequestError{
+				Code:    400,
+				Message: "Cannot pay cancelled order",
+			}, nil
+		}
 	}
 
 	timeoutCtx, cancel := context.WithTimeout(ctx, requestTimeout)

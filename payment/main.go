@@ -17,11 +17,15 @@ import (
 
 const grpcPort = 50052
 
-type paymentService struct {
+type PaymentService struct {
 	payV1.UnimplementedPaymentServiceServer
 }
 
-func (s *paymentService) PayOrder(_ context.Context, r *payV1.PayOrderRequest) (*payV1.PayOrderResponse, error) {
+func NewPaymentService() *PaymentService {
+	return &PaymentService{}
+}
+
+func (s *PaymentService) PayOrder(_ context.Context, r *payV1.PayOrderRequest) (*payV1.PayOrderResponse, error) {
 	transactionUuid := uuid.NewString()
 	log.Printf("Payment has been succeded, transaction_uuid: %s\n", transactionUuid)
 	return &payV1.PayOrderResponse{
@@ -43,7 +47,9 @@ func main() {
 	}()
 
 	s := grpc.NewServer()
-	service := &paymentService{}
+
+	service := NewPaymentService()
+	
 	payV1.RegisterPaymentServiceServer(s, service)
 
 	reflection.Register(s)
