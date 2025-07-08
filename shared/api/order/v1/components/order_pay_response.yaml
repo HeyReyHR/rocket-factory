@@ -1,0 +1,9 @@
+type: object
+required:
+  - transaction_uuid
+properties:
+  transaction_uuid:
+    type: string
+    description: transaction UUID
+    minLength: 1
+    example: "1"
