@@ -1,0 +1,39 @@
+with-expecter: true
+dir: "{{.InterfaceDir}}/mocks"
+filename: "mock_{{.InterfaceNameSnake}}.go"
+outpkg: "mocks"
+mockname: "{{.InterfaceName}}"
+resolve-type-alias: False
+issue-845-fix: True
+
+packages:
+  github.com/HeyReyHR/rocket-factory/inventory/internal/service:
+    config:
+      include-regex: ".*Service"
+
+  github.com/HeyReyHR/rocket-factory/inventory/internal/repository:
+    config:
+      include-regex: ".*Repository"
+
+  github.com/HeyReyHR/rocket-factory/inventory/internal/api/inventory/v1:
+    config:
+      include-regex: ".*api"
+
+  github.com/HeyReyHR/rocket-factory/order/internal/service:
+    config:
+      include-regex: ".*Service"
+
+  github.com/HeyReyHR/rocket-factory/order/internal/repository:
+    config:
+      include-regex: ".*Repository"
+
+  github.com/HeyReyHR/rocket-factory/order/internal/api/order/v1:
+    config:
+      include-regex: ".*api"
+
+  github.com/HeyReyHR/rocket-factory/payment/internal/service:
+    config:
+      include-regex: ".*Service"
+  github.com/HeyReyHR/rocket-factory/order/internal/client:
+    config:
+      include-regex: ".*Client"
