@@ -8,7 +8,7 @@ import (
 )
 
 func (a *api) GetPart(ctx context.Context, r *invV1.GetPartRequest) (*invV1.GetPartResponse, error) {
-	part, err := a.inventoryService.Part(ctx, r.GetUuid())
+	part, err := a.inventoryService.GetPart(ctx, r.GetUuid())
 	if err != nil {
 		return nil, err
 	}

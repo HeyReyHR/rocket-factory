@@ -7,6 +7,6 @@ import (
 )
 
 type InventoryRepository interface {
-	Part(ctx context.Context, uuid string) (serviceModel.Part, error)
-	Parts(ctx context.Context, filter serviceModel.Filter) ([]serviceModel.Part, error)
+	GetPart(ctx context.Context, uuid string) (serviceModel.Part, error)
+	ListParts(ctx context.Context, filter serviceModel.Filter) ([]serviceModel.Part, error)
 }

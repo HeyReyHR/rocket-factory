@@ -11,9 +11,9 @@ import (
 	"syscall"
 	"time"
 
-	v1 "github.com/HeyReyHR/rocket-factory/order/internal/api/order/v1"
-	v3 "github.com/HeyReyHR/rocket-factory/order/internal/client/inventory/v1"
-	v2 "github.com/HeyReyHR/rocket-factory/order/internal/client/payment/v1"
+	orderApiV1 "github.com/HeyReyHR/rocket-factory/order/internal/api/order/v1"
+	inventoryClientV1 "github.com/HeyReyHR/rocket-factory/order/internal/client/inventory/v1"
+	paymentClientV1 "github.com/HeyReyHR/rocket-factory/order/internal/client/payment/v1"
 	repoOrder "github.com/HeyReyHR/rocket-factory/order/internal/repository/order"
 	serviceOrder "github.com/HeyReyHR/rocket-factory/order/internal/service/order"
 	orderV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/openapi/order/v1"
@@ -27,7 +27,7 @@ import (
 
 const (
 	paymentServiceAddress   = "localhost:50052"
-	inventoryServiceAddress = "localhost:500"
+	inventoryServiceAddress = "localhost:50051"
 	httpPort                = "8080"
 	requestTimeout          = 5 * time.Second
 	readHeaderTimeout       = 5 * time.Second
@@ -66,14 +66,14 @@ func main() {
 
 	inventory := invV1.NewInventoryServiceClient(connInv)
 
-	paymentClient := v2.NewPaymentClient(payment)
-	inventoryClient := v3.NewInventoryClient(inventory)
+	paymentClient := paymentClientV1.NewPaymentClient(payment)
+	inventoryClient := inventoryClientV1.NewInventoryClient(inventory)
 
 	repository := repoOrder.NewRepository()
 
 	orderService := serviceOrder.NewService(inventoryClient, paymentClient, repository)
 
-	orderApi := v1.NewApi(orderService)
+	orderApi := orderApiV1.NewApi(orderService)
 
 	orderServer, err := orderV1.NewServer(orderApi)
 	if err != nil {

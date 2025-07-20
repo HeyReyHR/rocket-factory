@@ -22,12 +22,12 @@ func (_m *InventoryRepository) EXPECT() *InventoryRepository_Expecter {
 	return &InventoryRepository_Expecter{mock: &_m.Mock}
 }
 
-// Part provides a mock function with given fields: ctx, uuid
-func (_m *InventoryRepository) Part(ctx context.Context, uuid string) (model.Part, error) {
+// GetPart provides a mock function with given fields: ctx, uuid
+func (_m *InventoryRepository) GetPart(ctx context.Context, uuid string) (model.Part, error) {
 	ret := _m.Called(ctx, uuid)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Part")
+		panic("no return value specified for GetPart")
 	}
 
 	var r0 model.Part
@@ -50,41 +50,41 @@ func (_m *InventoryRepository) Part(ctx context.Context, uuid string) (model.Par
 	return r0, r1
 }
 
-// InventoryRepository_Part_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Part'
-type InventoryRepository_Part_Call struct {
+// InventoryRepository_GetPart_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPart'
+type InventoryRepository_GetPart_Call struct {
 	*mock.Call
 }
 
-// Part is a helper method to define mock.On call
+// GetPart is a helper method to define mock.On call
 //   - ctx context.Context
 //   - uuid string
-func (_e *InventoryRepository_Expecter) Part(ctx interface{}, uuid interface{}) *InventoryRepository_Part_Call {
-	return &InventoryRepository_Part_Call{Call: _e.mock.On("Part", ctx, uuid)}
+func (_e *InventoryRepository_Expecter) GetPart(ctx interface{}, uuid interface{}) *InventoryRepository_GetPart_Call {
+	return &InventoryRepository_GetPart_Call{Call: _e.mock.On("GetPart", ctx, uuid)}
 }
 
-func (_c *InventoryRepository_Part_Call) Run(run func(ctx context.Context, uuid string)) *InventoryRepository_Part_Call {
+func (_c *InventoryRepository_GetPart_Call) Run(run func(ctx context.Context, uuid string)) *InventoryRepository_GetPart_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
 
-func (_c *InventoryRepository_Part_Call) Return(_a0 model.Part, _a1 error) *InventoryRepository_Part_Call {
+func (_c *InventoryRepository_GetPart_Call) Return(_a0 model.Part, _a1 error) *InventoryRepository_GetPart_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *InventoryRepository_Part_Call) RunAndReturn(run func(context.Context, string) (model.Part, error)) *InventoryRepository_Part_Call {
+func (_c *InventoryRepository_GetPart_Call) RunAndReturn(run func(context.Context, string) (model.Part, error)) *InventoryRepository_GetPart_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// Parts provides a mock function with given fields: ctx, filter
-func (_m *InventoryRepository) Parts(ctx context.Context, filter model.Filter) ([]model.Part, error) {
+// ListParts provides a mock function with given fields: ctx, filter
+func (_m *InventoryRepository) ListParts(ctx context.Context, filter model.Filter) ([]model.Part, error) {
 	ret := _m.Called(ctx, filter)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Parts")
+		panic("no return value specified for ListParts")
 	}
 
 	var r0 []model.Part
@@ -109,31 +109,31 @@ func (_m *InventoryRepository) Parts(ctx context.Context, filter model.Filter) (
 	return r0, r1
 }
 
-// InventoryRepository_Parts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Parts'
-type InventoryRepository_Parts_Call struct {
+// InventoryRepository_ListParts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListParts'
+type InventoryRepository_ListParts_Call struct {
 	*mock.Call
 }
 
-// Parts is a helper method to define mock.On call
+// ListParts is a helper method to define mock.On call
 //   - ctx context.Context
 //   - filter model.Filter
-func (_e *InventoryRepository_Expecter) Parts(ctx interface{}, filter interface{}) *InventoryRepository_Parts_Call {
-	return &InventoryRepository_Parts_Call{Call: _e.mock.On("Parts", ctx, filter)}
+func (_e *InventoryRepository_Expecter) ListParts(ctx interface{}, filter interface{}) *InventoryRepository_ListParts_Call {
+	return &InventoryRepository_ListParts_Call{Call: _e.mock.On("ListParts", ctx, filter)}
 }
 
-func (_c *InventoryRepository_Parts_Call) Run(run func(ctx context.Context, filter model.Filter)) *InventoryRepository_Parts_Call {
+func (_c *InventoryRepository_ListParts_Call) Run(run func(ctx context.Context, filter model.Filter)) *InventoryRepository_ListParts_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(model.Filter))
 	})
 	return _c
 }
 
-func (_c *InventoryRepository_Parts_Call) Return(_a0 []model.Part, _a1 error) *InventoryRepository_Parts_Call {
+func (_c *InventoryRepository_ListParts_Call) Return(_a0 []model.Part, _a1 error) *InventoryRepository_ListParts_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *InventoryRepository_Parts_Call) RunAndReturn(run func(context.Context, model.Filter) ([]model.Part, error)) *InventoryRepository_Parts_Call {
+func (_c *InventoryRepository_ListParts_Call) RunAndReturn(run func(context.Context, model.Filter) ([]model.Part, error)) *InventoryRepository_ListParts_Call {
 	_c.Call.Return(run)
 	return _c
 }

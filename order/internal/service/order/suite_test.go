@@ -10,7 +10,7 @@ import (
 
 type ServiceSuite struct {
 	suite.Suite
-	orderRepository *mocks.OrderRepository
+	orderRepository *mocks.OrderRepository // ts ain't working on table tests (see inventory)
 	inventoryClient *mocksClient.InventoryClient
 	paymentClient   *mocksClient.PaymentClient
 	service         *service

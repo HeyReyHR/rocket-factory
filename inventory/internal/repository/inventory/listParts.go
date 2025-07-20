@@ -9,7 +9,7 @@ import (
 	"github.com/HeyReyHR/rocket-factory/inventory/internal/repository/model"
 )
 
-func (r *repository) Parts(_ context.Context, filter serviceModel.Filter) ([]serviceModel.Part, error) {
+func (r *repository) ListParts(_ context.Context, filter serviceModel.Filter) ([]serviceModel.Part, error) {
 	r.mu.RLock()
 	var parts []model.Part
 	for _, part := range r.data {

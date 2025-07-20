@@ -8,7 +8,7 @@ import (
 )
 
 func (a *api) ListParts(ctx context.Context, r *invV1.ListPartsRequest) (*invV1.ListPartsResponse, error) {
-	parts, err := a.inventoryService.Parts(ctx, converter.FilterInfoToModel(r.Filter))
+	parts, err := a.inventoryService.ListParts(ctx, converter.FilterInfoToModel(r.Filter))
 	if err != nil {
 		return nil, err
 	}
