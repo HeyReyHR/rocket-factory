@@ -13,7 +13,7 @@ type Part struct {
 	StockQuantity int64
 	Manufacturer  Manufacturer
 	Tags          []string
-	Metadata      map[string]Value
+	Metadata      map[string]interface{}
 	Dimensions    Dimensions
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
@@ -29,13 +29,6 @@ type Manufacturer struct {
 	Name    string
 	Country string
 	Website string
-}
-
-type Value struct {
-	StringValue *string
-	Int64Value  *int64
-	DoubleValue *float64
-	BoolValue   *bool
 }
 
 type Category string

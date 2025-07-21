@@ -27,23 +27,14 @@ func FilterModelToRepoModel(filter model.Filter) repoModel.Filter {
 	}
 }
 
-func RepoValueToValueModel(repoValue repoModel.Value) model.Value {
-	return model.Value{
-		StringValue: repoValue.StringValue,
-		Int64Value:  repoValue.Int64Value,
-		DoubleValue: repoValue.DoubleValue,
-		BoolValue:   repoValue.BoolValue,
-	}
-}
-
-func RepoMetadataToMetadataModel(repoMetadata map[string]repoModel.Value) map[string]model.Value {
+func RepoMetadataToMetadataModel(repoMetadata map[string]interface{}) map[string]interface{} {
 	if repoMetadata == nil {
 		return nil
 	}
 
-	modelMetadata := make(map[string]model.Value)
+	modelMetadata := make(map[string]interface{})
 	for key, value := range repoMetadata {
-		modelMetadata[key] = RepoValueToValueModel(value)
+		modelMetadata[key] = value
 	}
 	return modelMetadata
 }

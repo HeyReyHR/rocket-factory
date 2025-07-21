@@ -29,7 +29,7 @@ func (r *repository) ListParts(ctx context.Context, filter serviceModel.Filter) 
 		}
 	}
 	if len(filter.ManufacturerCountries) > 0 {
-		filterQuery["manufacturer_country"] = bson.M{
+		filterQuery["manufacturer.country"] = bson.M{
 			"$in": filter.ManufacturerCountries,
 		}
 	}
@@ -44,7 +44,7 @@ func (r *repository) ListParts(ctx context.Context, filter serviceModel.Filter) 
 	}
 	defer func() {
 		cerr := cursor.Close(ctx)
-		if cerr == nil {
+		if cerr != nil {
 			log.Printf("failed to close cursor: %v\n", cerr)
 		}
 	}()

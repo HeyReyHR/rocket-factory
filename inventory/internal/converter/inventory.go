@@ -63,7 +63,7 @@ func ManufacturerModelToInfo(model model.Manufacturer) *invV1.Manufacturer {
 	}
 }
 
-func MetadataModelToInfo(model map[string]model.Value) map[string]*invV1.Value {
+func MetadataModelToInfo(model map[string]interface{}) map[string]*invV1.Value {
 	if model == nil {
 		return nil
 	}
@@ -74,36 +74,35 @@ func MetadataModelToInfo(model map[string]model.Value) map[string]*invV1.Value {
 	return infoMetadata
 }
 
-func ValueModelToInfo(model model.Value) *invV1.Value {
-	if model.StringValue != nil {
+func ValueModelToInfo(value interface{}) *invV1.Value {
+	switch v := value.(type) {
+	case string:
 		return &invV1.Value{
-			ValueType: &invV1.Value_StringValue{
-				StringValue: *model.StringValue,
-			},
+			ValueType: &invV1.Value_StringValue{StringValue: v},
 		}
-	}
-	if model.Int64Value != nil {
+	case int:
 		return &invV1.Value{
-			ValueType: &invV1.Value_Int64Value{
-				Int64Value: *model.Int64Value,
-			},
+			ValueType: &invV1.Value_Int64Value{Int64Value: int64(v)},
 		}
-	}
-	if model.DoubleValue != nil {
+	case int64:
 		return &invV1.Value{
-			ValueType: &invV1.Value_DoubleValue{
-				DoubleValue: *model.DoubleValue,
-			},
+			ValueType: &invV1.Value_Int64Value{Int64Value: v},
 		}
-	}
-	if model.BoolValue != nil {
+	case float32:
 		return &invV1.Value{
-			ValueType: &invV1.Value_BoolValue{
-				BoolValue: *model.BoolValue,
-			},
+			ValueType: &invV1.Value_DoubleValue{DoubleValue: float64(v)},
 		}
+	case float64:
+		return &invV1.Value{
+			ValueType: &invV1.Value_DoubleValue{DoubleValue: v},
+		}
+	case bool:
+		return &invV1.Value{
+			ValueType: &invV1.Value_BoolValue{BoolValue: v},
+		}
+	default:
+		return &invV1.Value{}
 	}
-	return &invV1.Value{}
 }
 
 func CategoryInfoToModel(info invV1.Category) model.Category {
