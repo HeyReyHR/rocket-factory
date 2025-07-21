@@ -1,21 +1,18 @@
 package order
 
 import (
-	"sync"
-
 	repository2 "github.com/HeyReyHR/rocket-factory/order/internal/repository"
-	"github.com/HeyReyHR/rocket-factory/order/internal/repository/model"
+	"github.com/jackc/pgx/v5"
 )
 
 var _ repository2.OrderRepository = (*repository)(nil)
 
 type repository struct {
-	mu   sync.RWMutex
-	data map[string]model.Order
+	dbConn *pgx.Conn
 }
 
-func NewRepository() *repository {
+func NewRepository(dbConn *pgx.Conn) *repository {
 	return &repository{
-		data: make(map[string]model.Order),
+		dbConn: dbConn,
 	}
 }

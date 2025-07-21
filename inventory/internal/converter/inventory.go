@@ -42,13 +42,13 @@ func DimensionsModelToInfo(model model.Dimensions) *invV1.Dimensions {
 
 func CategoryModelToInfo(model model.Category) invV1.Category {
 	switch model {
-	case 1:
+	case "engine":
 		return invV1.Category_ENGINE
-	case 2:
+	case "fuel":
 		return invV1.Category_FUEL
-	case 3:
+	case "porthole":
 		return invV1.Category_PORTHOLE
-	case 4:
+	case "wing":
 		return invV1.Category_WING
 	default:
 		return invV1.Category_UNKNOWN
@@ -109,15 +109,15 @@ func ValueModelToInfo(model model.Value) *invV1.Value {
 func CategoryInfoToModel(info invV1.Category) model.Category {
 	switch info {
 	case invV1.Category_ENGINE:
-		return model.Category(1)
+		return "engine"
 	case invV1.Category_FUEL:
-		return model.Category(2)
+		return "fuel"
 	case invV1.Category_PORTHOLE:
-		return model.Category(3)
+		return "porthole"
 	case invV1.Category_WING:
-		return model.Category(4)
+		return "wing"
 	default:
-		return model.Category(0)
+		return "unknown"
 	}
 }
 

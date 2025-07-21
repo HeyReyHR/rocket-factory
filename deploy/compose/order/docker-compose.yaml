@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: order_service_db
+    environment:
+      POSTGRES_USER: order-service
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - order_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U order-service" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - microservices-net
+
+volumes:
+  order_data:
+
+networks:
+  microservices-net:
+    external: true

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -12,6 +13,8 @@ import (
 	repository "github.com/HeyReyHR/rocket-factory/inventory/internal/repository/inventory"
 	service "github.com/HeyReyHR/rocket-factory/inventory/internal/service/inventory"
 	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -19,6 +22,28 @@ import (
 const grpcPort = 50051
 
 func main() {
+	ctx := context.Background()
+
+	dbURI := "mongodb://inventory-service-user:mongo@localhost:27017/database?authSource=admin"
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(dbURI))
+	if err != nil {
+		log.Fatalf("failed to connect to MongoDB: %v\n", err)
+	}
+
+	defer func() {
+		if cerr := client.Disconnect(ctx); cerr != nil {
+			log.Printf("failed to disconnect from MongoDB: %v\n", cerr)
+		}
+	}()
+
+	err = client.Ping(ctx, nil)
+	if err != nil {
+		log.Printf("failed to ping MongoDB: %v\n", err)
+	}
+
+	db := client.Database("inventory-service")
+
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
 		log.Printf("failed to listen: %v\n", err)
@@ -33,7 +58,7 @@ func main() {
 
 	s := grpc.NewServer()
 
-	newRepository := repository.NewRepository()
+	newRepository := repository.NewRepository(db)
 
 	newService := service.NewService(newRepository)
 

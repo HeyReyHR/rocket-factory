@@ -15,7 +15,7 @@ type OrderService interface {
 }
 
 type OrderRepository interface {
-	Create(ctx context.Context, uuid, userUuid string, partUuids []string, totalPrice float64) (string, float64)
-	Update(ctx context.Context, uuid string, order repoModel.Order)
+	Create(ctx context.Context, uuid, userUuid string, partUuids []string, totalPrice float64) (string, float64, error)
+	Update(ctx context.Context, uuid string, order repoModel.Order) error
 	Get(ctx context.Context, uuid string) (model.Order, error)
 }

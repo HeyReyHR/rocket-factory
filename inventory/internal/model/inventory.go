@@ -38,14 +38,14 @@ type Value struct {
 	BoolValue   *bool
 }
 
-type Category int
+type Category string
 
 const (
-	UNKNOWN Category = iota
-	ENGINE
-	FUEL
-	PORTHOLE
-	WING
+	UNKNOWN  Category = "unknown"
+	ENGINE   Category = "engine"
+	FUEL     Category = "fuel"
+	PORTHOLE Category = "porthole"
+	WING     Category = "wing"
 )
 
 type Filter struct {

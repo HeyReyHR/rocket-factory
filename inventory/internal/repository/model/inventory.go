@@ -5,47 +5,47 @@ import (
 )
 
 type Part struct {
-	Uuid          string
-	Name          string
-	Description   string
-	Price         float64
-	Category      Category
-	StockQuantity int64
-	Manufacturer  Manufacturer
-	Tags          []string
-	Metadata      map[string]Value
-	Dimensions    Dimensions
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	Uuid          string           `bson:"uuid,omitempty"`
+	Name          string           `bson:"name"`
+	Description   string           `bson:"description,omitempty"`
+	Price         float64          `bson:"price"`
+	Category      Category         `bson:"category"`
+	StockQuantity int64            `bson:"stock_quantity"`
+	Manufacturer  Manufacturer     `bson:"manufacturer"`
+	Tags          []string         `bson:"tags"`
+	Metadata      map[string]Value `bson:"metadata,omitempty"`
+	Dimensions    Dimensions       `bson:"dimensions"`
+	CreatedAt     time.Time        `bson:"created_at"`
+	UpdatedAt     time.Time        `bson:"updated_at,omitempty"`
 }
 type Dimensions struct {
-	Length float64
-	Width  float64
-	Height float64
-	Weight float64
+	Length float64 `bson:"length"`
+	Width  float64 `bson:"width"`
+	Height float64 `bson:"height"`
+	Weight float64 `bson:"weight"`
 }
 
 type Manufacturer struct {
-	Name    string
-	Country string
-	Website string
+	Name    string `bson:"name"`
+	Country string `bson:"country"`
+	Website string `bson:"website"`
 }
 
 type Value struct {
-	StringValue *string
-	Int64Value  *int64
-	DoubleValue *float64
-	BoolValue   *bool
+	StringValue *string  `bson:"string_value,omitempty"`
+	Int64Value  *int64   `bson:"int64_value,omitempty"`
+	DoubleValue *float64 `bson:"double_value,omitempty"`
+	BoolValue   *bool    `bson:"bool_value,omitempty"`
 }
 
-type Category int
+type Category string
 
 const (
-	UNKNOWN Category = iota
-	ENGINE
-	FUEL
-	PORTHOLE
-	WING
+	UNKNOWN  Category = "unknown"
+	ENGINE   Category = "engine"
+	FUEL     Category = "fuel"
+	PORTHOLE Category = "porthole"
+	WING     Category = "wing"
 )
 
 type Filter struct {

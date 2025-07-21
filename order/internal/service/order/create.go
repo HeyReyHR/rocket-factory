@@ -37,7 +37,9 @@ func (s *service) Create(ctx context.Context, userUuid string, partUuids []strin
 		totalPrice += part.Price
 	}
 
-	s.orderRepository.Create(ctx, newUuid, userUuid, partUuids, totalPrice)
-
+	_, _, err = s.orderRepository.Create(ctx, newUuid, userUuid, partUuids, totalPrice)
+	if err != nil {
+		return "", 0, err
+	}
 	return newUuid, totalPrice, nil
 }

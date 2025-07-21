@@ -10,4 +10,5 @@ var (
 	ErrListPartsFailed     = errors.New("list parts failed")
 	ErrPartsNotFound       = errors.New("some parts not found")
 	ErrPartOutOfStock      = errors.New("part out of stock")
+	ErrOrderScanFailed     = errors.New("order scan failed")
 )
