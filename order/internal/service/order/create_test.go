@@ -48,7 +48,7 @@ func (s *ServiceSuite) TestCreatePartOutOfStock() {
 	s.inventoryClient.On("ListParts", mock.Anything, model.PartsFilter{
 		Uuids: partUuids,
 	}).Return(parts, nil)
-	
+
 	uuid, totalPrice, err := s.service.Create(ctx, "heyrey", partUuids)
 
 	s.Error(err)
