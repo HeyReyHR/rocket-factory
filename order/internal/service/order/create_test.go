@@ -14,7 +14,7 @@ func (s *ServiceSuite) TestCreateSuccess() {
 	partFilter, parts, partUuids := inventoryClientListPartsCreateSuccess()
 
 	s.inventoryClient.On("ListParts", mock.Anything, partFilter).Return(parts, nil)
-	s.orderRepository.On("Create", ctx, mock.AnythingOfType("string"), "heyrey", partUuids, 28500.00).Return("1", 28500.00)
+	s.orderRepository.On("Create", ctx, mock.AnythingOfType("string"), "heyrey", partUuids, 28500.00).Return("1", 28500.00, nil)
 	uuid, totalPrice, err := s.service.Create(ctx, "heyrey", partUuids)
 
 	s.NoError(err)
@@ -26,11 +26,11 @@ func (s *ServiceSuite) TestCreateNotFoundParts() {
 	ctx := context.Background()
 
 	partUuids := []string{"engine-xxx"}
-	parts := inventoryClientListPartsOutOfStock()
 
 	s.inventoryClient.On("ListParts", mock.Anything, model.PartsFilter{
 		Uuids: partUuids,
-	}).Return(parts, nil)
+	}).Return([]model.Part{}, nil)
+
 	uuid, totalPrice, err := s.service.Create(ctx, "heyrey", partUuids)
 
 	s.Error(err)
@@ -43,10 +43,12 @@ func (s *ServiceSuite) TestCreatePartOutOfStock() {
 	ctx := context.Background()
 
 	partUuids := []string{"engine-002"}
+	parts := inventoryClientListPartsOutOfStock()
 
 	s.inventoryClient.On("ListParts", mock.Anything, model.PartsFilter{
 		Uuids: partUuids,
-	}).Return([]model.Part{}, nil)
+	}).Return(parts, nil)
+	
 	uuid, totalPrice, err := s.service.Create(ctx, "heyrey", partUuids)
 
 	s.Error(err)

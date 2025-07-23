@@ -14,7 +14,7 @@ func (s *ServiceSuite) TestCancelSuccess() {
 	order := updateRepositoryCancelSuccess()
 
 	s.orderRepository.On("Get", ctx, "1").Return(serviceOrder, nil)
-	s.orderRepository.On("Update", ctx, "1", order)
+	s.orderRepository.On("Update", ctx, "1", order).Return(nil)
 	err := s.service.Cancel(ctx, "1")
 
 	s.NoError(err)
