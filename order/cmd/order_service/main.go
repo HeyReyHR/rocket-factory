@@ -74,7 +74,7 @@ func main() {
 	paymentClient := paymentClientV1.NewPaymentClient(payment)
 	inventoryClient := inventoryClientV1.NewInventoryClient(inventory)
 
-	dbConn, dbErr := pgx.Connect(ctx, "postgres://order-service:postgres@localhost:5432/postgres")
+	dbConn, dbErr := pgx.Connect(ctx, "postgres://order-service:postgres@localhost:5444/postgres")
 	if dbErr != nil {
 		log.Printf("failed to connect to database: %s\n", dbErr)
 		return

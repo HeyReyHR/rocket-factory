@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: order-service
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      - "5444:5432"
     volumes:
       - order_data:/var/lib/postgresql/data
     healthcheck:
