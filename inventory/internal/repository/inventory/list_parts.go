@@ -13,7 +13,7 @@ import (
 func (r *repository) ListParts(ctx context.Context, filter serviceModel.Filter) ([]serviceModel.Part, error) {
 	filterQuery := bson.M{}
 
-	if len(filter.Uuids) > 0 { // TODO FIX FILTER
+	if len(filter.Uuids) > 0 {
 		filterQuery["uuid"] = bson.M{
 			"$in": filter.Uuids,
 		}

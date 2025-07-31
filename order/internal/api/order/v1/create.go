@@ -21,7 +21,7 @@ func (a *api) PostOrder(ctx context.Context, r *orderV1.CreateOrderRequest) (ord
 			return &orderV1.InternalServerError{
 				Code:    500,
 				Message: "Internal server error: " + err.Error(),
-			}, nil
+			}, err
 		case errors.Is(err, model.ErrPartsNotFound):
 			return &orderV1.BadRequestError{
 				Code:    400,

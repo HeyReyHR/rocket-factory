@@ -15,7 +15,7 @@ func (a *api) CancelOrder(ctx context.Context, params orderV1.CancelOrderParams)
 		case errors.Is(err, model.ErrOrderNotFound):
 			return &orderV1.NotFoundError{
 				Code:    404,
-				Message: "Order By UUID " + params.OrderUUID + " not found",
+				Message: "Order by UUID " + params.OrderUUID + " not found",
 			}, nil
 		case errors.Is(err, model.ErrAlreadyPaid):
 			return &orderV1.ConfilctError{

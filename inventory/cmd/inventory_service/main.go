@@ -12,6 +12,7 @@ import (
 	api "github.com/HeyReyHR/rocket-factory/inventory/internal/api/inventory/v1"
 	repository "github.com/HeyReyHR/rocket-factory/inventory/internal/repository/inventory"
 	service "github.com/HeyReyHR/rocket-factory/inventory/internal/service/inventory"
+	"github.com/HeyReyHR/rocket-factory/shared/pkg/interceptors"
 	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -56,7 +57,7 @@ func main() {
 		}
 	}()
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.UnaryInterceptor(interceptors.UnaryErrorInterceptor()))
 
 	newRepository := repository.NewRepository(db)
 

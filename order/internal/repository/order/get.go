@@ -2,19 +2,17 @@ package order
 
 import (
 	"context"
+	"errors"
 
 	"github.com/HeyReyHR/rocket-factory/order/internal/model"
 	"github.com/HeyReyHR/rocket-factory/order/internal/repository/converter"
 	repoModel "github.com/HeyReyHR/rocket-factory/order/internal/repository/model"
+	"github.com/jackc/pgx/v5"
 )
 
 func (r *repository) Get(ctx context.Context, uuid string) (model.Order, error) {
-	rows, err := r.dbConn.Query(ctx, "SELECT user_uuid, part_uuids, total_price, transaction_uuid, payment_method, status FROM orders WHERE uuid = $1", uuid)
-	if err != nil {
-		return model.Order{}, model.ErrOrderNotFound
-	}
-
-	defer rows.Close()
+	row := r.dbConn.QueryRow(ctx, `SELECT user_uuid, part_uuids, total_price, transaction_uuid, payment_method, status 
+	FROM orders WHERE uuid = $1`, uuid)
 
 	var userUuid string
 	var partUuids []string
@@ -22,14 +20,13 @@ func (r *repository) Get(ctx context.Context, uuid string) (model.Order, error) 
 	var transactionUuid *string
 	var paymentMethod *repoModel.PaymentMethod
 	var status repoModel.Status
-
-	for rows.Next() {
-		err = rows.Scan(&userUuid, &partUuids, &totalPrice, &transactionUuid, &paymentMethod, &status)
-		if err != nil {
-			return model.Order{}, model.ErrOrderScanFailed
+	err := row.Scan(&userUuid, &partUuids, &totalPrice, &transactionUuid, &paymentMethod, &status)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return model.Order{}, model.ErrOrderNotFound
 		}
+		return model.Order{}, model.ErrOrderScanFailed
 	}
-
 	order := repoModel.Order{
 		Uuid:            uuid,
 		UserUuid:        userUuid,

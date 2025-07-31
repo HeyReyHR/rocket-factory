@@ -1,5 +1,9 @@
 package model
 
-import "errors"
+import (
+	"errors"
 
-var ErrPartNotFound = errors.New("part not found")
+	sharedErrors "github.com/HeyReyHR/rocket-factory/shared/pkg/errors"
+)
+
+var ErrPartNotFound = sharedErrors.NewNotFoundError(errors.New("part not found"))

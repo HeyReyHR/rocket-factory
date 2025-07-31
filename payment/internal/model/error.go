@@ -1,8 +1,12 @@
 package model
 
-import "errors"
+import (
+	"errors"
+
+	sharedErrors "github.com/HeyReyHR/rocket-factory/shared/pkg/errors"
+)
 
 var (
-	ErrOrderUuidEmpty       = errors.New("order uuid is empty")
-	ErrPaymentMethodUnknown = errors.New("payment method is unknown")
+	ErrOrderUuidEmpty       = sharedErrors.NewInvalidArgumentError(errors.New("order uuid is empty"))
+	ErrPaymentMethodUnknown = sharedErrors.NewInvalidArgumentError(errors.New("payment method is unknown"))
 )
