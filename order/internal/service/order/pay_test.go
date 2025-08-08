@@ -14,7 +14,7 @@ func (s *ServiceSuite) TestPaySuccess() {
 
 	s.orderRepository.On("Get", ctx, "1").Return(order, nil)
 	s.paymentClient.On("PayOrder", mock.Anything, "1", serviceModel.CARD).Return("2", nil)
-	s.orderRepository.On("Update", ctx, "1", mock.AnythingOfType("model.Order")).Return()
+	s.orderRepository.On("Update", ctx, "1", mock.AnythingOfType("model.Order")).Return(nil)
 	uuid, err := s.service.Pay(ctx, "1", serviceModel.CARD)
 
 	s.NoError(err)

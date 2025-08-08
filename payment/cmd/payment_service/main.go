@@ -10,6 +10,7 @@ import (
 
 	v1 "github.com/HeyReyHR/rocket-factory/payment/internal/api/payment/v1"
 	"github.com/HeyReyHR/rocket-factory/payment/internal/service/payment"
+	"github.com/HeyReyHR/rocket-factory/shared/pkg/interceptors"
 	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -30,7 +31,7 @@ func main() {
 		}
 	}()
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.UnaryInterceptor(interceptors.UnaryErrorInterceptor()))
 
 	service := payment.NewService()
 

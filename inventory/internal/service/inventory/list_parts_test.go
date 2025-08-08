@@ -98,11 +98,11 @@ func getRepositoryListSuccess() ([]model.Part, model.Filter) {
 				Height: 1.0,
 				Weight: 500.0,
 			},
-			Metadata: map[string]model.Value{
-				"max_thrust": {Int64Value: &[]int64{25000}[0]},
-				"fuel_type":  {StringValue: &[]string{"liquid"}[0]},
-				"efficiency": {DoubleValue: &[]float64{0.95}[0]},
-				"tested":     {BoolValue: &[]bool{true}[0]},
+			Metadata: map[string]interface{}{
+				"max_thrust": 25000,
+				"fuel_type":  "liquid",
+				"efficiency": 0.95,
+				"tested":     true,
 			},
 			CreatedAt: time.Date(2024, 11, 3, 14, 27, 19, 0, time.UTC),
 			UpdatedAt: time.Date(2024, 11, 3, 14, 27, 19, 0, time.UTC),

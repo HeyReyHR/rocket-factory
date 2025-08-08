@@ -19,7 +19,10 @@ func (s *service) Cancel(ctx context.Context, uuid string) error {
 
 	order.Status = model.CANCELLED
 
-	s.orderRepository.Update(ctx, uuid, converter.ServiceOrderToRepoOrder(order))
+	err = s.orderRepository.Update(ctx, uuid, converter.ServiceOrderToRepoOrder(order))
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

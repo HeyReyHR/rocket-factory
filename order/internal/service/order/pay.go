@@ -33,7 +33,10 @@ func (s *service) Pay(ctx context.Context, uuid string, paymentMethod model.Paym
 
 	order.Status = model.PAID
 
-	s.orderRepository.Update(ctx, uuid, converter.ServiceOrderToRepoOrder(order))
+	err = s.orderRepository.Update(ctx, uuid, converter.ServiceOrderToRepoOrder(order))
+	if err != nil {
+		return "", err
+	}
 
 	return transactionUuid, nil
 }

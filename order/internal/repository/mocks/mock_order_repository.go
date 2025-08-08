@@ -25,7 +25,7 @@ func (_m *OrderRepository) EXPECT() *OrderRepository_Expecter {
 }
 
 // Create provides a mock function with given fields: ctx, uuid, userUuid, partUuids, totalPrice
-func (_m *OrderRepository) Create(ctx context.Context, uuid string, userUuid string, partUuids []string, totalPrice float64) (string, float64) {
+func (_m *OrderRepository) Create(ctx context.Context, uuid string, userUuid string, partUuids []string, totalPrice float64) (string, float64, error) {
 	ret := _m.Called(ctx, uuid, userUuid, partUuids, totalPrice)
 
 	if len(ret) == 0 {
@@ -34,7 +34,8 @@ func (_m *OrderRepository) Create(ctx context.Context, uuid string, userUuid str
 
 	var r0 string
 	var r1 float64
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, []string, float64) (string, float64)); ok {
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, []string, float64) (string, float64, error)); ok {
 		return rf(ctx, uuid, userUuid, partUuids, totalPrice)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, []string, float64) string); ok {
@@ -49,7 +50,13 @@ func (_m *OrderRepository) Create(ctx context.Context, uuid string, userUuid str
 		r1 = ret.Get(1).(float64)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, string, string, []string, float64) error); ok {
+		r2 = rf(ctx, uuid, userUuid, partUuids, totalPrice)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // OrderRepository_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
@@ -74,12 +81,12 @@ func (_c *OrderRepository_Create_Call) Run(run func(ctx context.Context, uuid st
 	return _c
 }
 
-func (_c *OrderRepository_Create_Call) Return(_a0 string, _a1 float64) *OrderRepository_Create_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *OrderRepository_Create_Call) Return(_a0 string, _a1 float64, _a2 error) *OrderRepository_Create_Call {
+	_c.Call.Return(_a0, _a1, _a2)
 	return _c
 }
 
-func (_c *OrderRepository_Create_Call) RunAndReturn(run func(context.Context, string, string, []string, float64) (string, float64)) *OrderRepository_Create_Call {
+func (_c *OrderRepository_Create_Call) RunAndReturn(run func(context.Context, string, string, []string, float64) (string, float64, error)) *OrderRepository_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -142,8 +149,21 @@ func (_c *OrderRepository_Get_Call) RunAndReturn(run func(context.Context, strin
 }
 
 // Update provides a mock function with given fields: ctx, uuid, order
-func (_m *OrderRepository) Update(ctx context.Context, uuid string, order repositorymodel.Order) {
-	_m.Called(ctx, uuid, order)
+func (_m *OrderRepository) Update(ctx context.Context, uuid string, order repositorymodel.Order) error {
+	ret := _m.Called(ctx, uuid, order)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Update")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, repositorymodel.Order) error); ok {
+		r0 = rf(ctx, uuid, order)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // OrderRepository_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
@@ -166,13 +186,13 @@ func (_c *OrderRepository_Update_Call) Run(run func(ctx context.Context, uuid st
 	return _c
 }
 
-func (_c *OrderRepository_Update_Call) Return() *OrderRepository_Update_Call {
-	_c.Call.Return()
+func (_c *OrderRepository_Update_Call) Return(_a0 error) *OrderRepository_Update_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *OrderRepository_Update_Call) RunAndReturn(run func(context.Context, string, repositorymodel.Order)) *OrderRepository_Update_Call {
-	_c.Run(run)
+func (_c *OrderRepository_Update_Call) RunAndReturn(run func(context.Context, string, repositorymodel.Order) error) *OrderRepository_Update_Call {
+	_c.Call.Return(run)
 	return _c
 }
 

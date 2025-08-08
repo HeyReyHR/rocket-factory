@@ -40,15 +40,15 @@ func DimensionsModelToInfo(model model.Dimensions) *invV1.Dimensions {
 	}
 }
 
-func CategoryModelToInfo(model model.Category) invV1.Category {
-	switch model {
-	case 1:
+func CategoryModelToInfo(category model.Category) invV1.Category {
+	switch category {
+	case model.ENGINE:
 		return invV1.Category_ENGINE
-	case 2:
+	case model.FUEL:
 		return invV1.Category_FUEL
-	case 3:
+	case model.PORTHOLE:
 		return invV1.Category_PORTHOLE
-	case 4:
+	case model.WING:
 		return invV1.Category_WING
 	default:
 		return invV1.Category_UNKNOWN
@@ -63,7 +63,7 @@ func ManufacturerModelToInfo(model model.Manufacturer) *invV1.Manufacturer {
 	}
 }
 
-func MetadataModelToInfo(model map[string]model.Value) map[string]*invV1.Value {
+func MetadataModelToInfo(model map[string]interface{}) map[string]*invV1.Value {
 	if model == nil {
 		return nil
 	}
@@ -74,50 +74,49 @@ func MetadataModelToInfo(model map[string]model.Value) map[string]*invV1.Value {
 	return infoMetadata
 }
 
-func ValueModelToInfo(model model.Value) *invV1.Value {
-	if model.StringValue != nil {
+func ValueModelToInfo(value interface{}) *invV1.Value {
+	switch v := value.(type) {
+	case string:
 		return &invV1.Value{
-			ValueType: &invV1.Value_StringValue{
-				StringValue: *model.StringValue,
-			},
+			ValueType: &invV1.Value_StringValue{StringValue: v},
 		}
-	}
-	if model.Int64Value != nil {
+	case int:
 		return &invV1.Value{
-			ValueType: &invV1.Value_Int64Value{
-				Int64Value: *model.Int64Value,
-			},
+			ValueType: &invV1.Value_Int64Value{Int64Value: int64(v)},
 		}
-	}
-	if model.DoubleValue != nil {
+	case int64:
 		return &invV1.Value{
-			ValueType: &invV1.Value_DoubleValue{
-				DoubleValue: *model.DoubleValue,
-			},
+			ValueType: &invV1.Value_Int64Value{Int64Value: v},
 		}
-	}
-	if model.BoolValue != nil {
+	case float32:
 		return &invV1.Value{
-			ValueType: &invV1.Value_BoolValue{
-				BoolValue: *model.BoolValue,
-			},
+			ValueType: &invV1.Value_DoubleValue{DoubleValue: float64(v)},
 		}
+	case float64:
+		return &invV1.Value{
+			ValueType: &invV1.Value_DoubleValue{DoubleValue: v},
+		}
+	case bool:
+		return &invV1.Value{
+			ValueType: &invV1.Value_BoolValue{BoolValue: v},
+		}
+	default:
+		return &invV1.Value{}
 	}
-	return &invV1.Value{}
 }
 
 func CategoryInfoToModel(info invV1.Category) model.Category {
 	switch info {
 	case invV1.Category_ENGINE:
-		return model.Category(1)
+		return model.ENGINE
 	case invV1.Category_FUEL:
-		return model.Category(2)
+		return model.FUEL
 	case invV1.Category_PORTHOLE:
-		return model.Category(3)
+		return model.PORTHOLE
 	case invV1.Category_WING:
-		return model.Category(4)
+		return model.WING
 	default:
-		return model.Category(0)
+		return model.UNKNOWN
 	}
 }
 

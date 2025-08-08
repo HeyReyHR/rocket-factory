@@ -14,6 +14,7 @@ import (
 	orderApiV1 "github.com/HeyReyHR/rocket-factory/order/internal/api/order/v1"
 	inventoryClientV1 "github.com/HeyReyHR/rocket-factory/order/internal/client/inventory/v1"
 	paymentClientV1 "github.com/HeyReyHR/rocket-factory/order/internal/client/payment/v1"
+	"github.com/HeyReyHR/rocket-factory/order/internal/migrator"
 	repoOrder "github.com/HeyReyHR/rocket-factory/order/internal/repository/order"
 	serviceOrder "github.com/HeyReyHR/rocket-factory/order/internal/service/order"
 	orderV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/openapi/order/v1"
@@ -21,6 +22,8 @@ import (
 	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -35,6 +38,8 @@ const (
 )
 
 func main() {
+	ctx := context.Background()
+
 	connPay, err := grpc.NewClient(
 		paymentServiceAddress,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -69,7 +74,34 @@ func main() {
 	paymentClient := paymentClientV1.NewPaymentClient(payment)
 	inventoryClient := inventoryClientV1.NewInventoryClient(inventory)
 
-	repository := repoOrder.NewRepository()
+	dbConn, dbErr := pgx.Connect(ctx, "postgres://order-service:postgres@localhost:5444/postgres")
+	if dbErr != nil {
+		log.Printf("failed to connect to database: %s\n", dbErr)
+		return
+	}
+	defer func() {
+		cerr := dbConn.Close(ctx)
+		if cerr != nil {
+			log.Printf("failed to close database connection: %s\n", cerr)
+		}
+	}()
+
+	dbErr = dbConn.Ping(ctx)
+	if dbErr != nil {
+		log.Printf("failed to ping database: %s\n", dbErr)
+		return
+	}
+
+	migrationsDir := "migrations"
+	migratorRunner := migrator.NewMigrator(stdlib.OpenDB(*dbConn.Config().Copy()), migrationsDir)
+
+	dbErr = migratorRunner.Up()
+	if dbErr != nil {
+		log.Printf("failed to run migrations: %s\n", dbErr)
+		return
+	}
+
+	repository := repoOrder.NewRepository(dbConn)
 
 	orderService := serviceOrder.NewService(inventoryClient, paymentClient, repository)
 

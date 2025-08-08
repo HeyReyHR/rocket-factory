@@ -1,16 +1,17 @@
 package inventory
 
 import (
+	"github.com/HeyReyHR/rocket-factory/inventory/internal/repository"
 	def "github.com/HeyReyHR/rocket-factory/inventory/internal/service"
 )
 
 var _ def.InventoryService = (*service)(nil)
 
 type service struct {
-	inventoryRepository def.InventoryRepository
+	inventoryRepository repository.InventoryRepository
 }
 
-func NewService(inventoryRepository def.InventoryRepository) *service {
+func NewService(inventoryRepository repository.InventoryRepository) *service {
 	return &service{
 		inventoryRepository: inventoryRepository,
 	}
