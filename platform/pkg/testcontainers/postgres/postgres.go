@@ -11,7 +11,7 @@ import (
 
 const (
 	postgresPort           = "5432"
-	postgresStartupTimeout = 1 * time.Minute
+	postgresStartupTimeout = 3 * time.Minute
 
 	postgresEnvUsernameKey = "POSTGRES_USER"
 	postgresEnvPasswordKey = "POSTGRES_PASSWORD" //nolint:gosec
