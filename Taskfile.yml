@@ -366,7 +366,7 @@ tasks:
         for mod in {{.MODULES}}; do
           if [ -d "$mod" ]; then
             echo "🧪 Тестируем модуль $mod (только юнит-тесты)"
-            go test -v -tags="!integration" $(go list ./$mod/... | grep -v -E '(/integration|/tests/integration|/integrationtests)') || ERR=1
+            go test -v -tags="!integration" $(go list ./$mod/... | grep -v -E '(/integration|/tests/integration|/integrationtests|/e2e|/tests/e2e)') || ERR=1
           fi
         done
         exit $ERR
