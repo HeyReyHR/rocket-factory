@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -19,7 +20,15 @@ func startPostgresContainer(ctx context.Context, cfg *Config) (testcontainers.Co
 			postgresEnvPasswordKey: cfg.Password,
 			postgresEnvDatabaseKey: cfg.Database,
 		},
-		WaitingFor:         wait.ForListeningPort(postgresPort + "/tcp").WithStartupTimeout(postgresStartupTimeout),
+		WaitingFor: wait.ForSQL(postgresPort+"/tcp", "postgres", func(host string, port nat.Port) string {
+			return buildPostgresURI(&Config{
+				Username: cfg.Username,
+				Password: cfg.Password,
+				Host:     host,
+				Port:     port.Port(),
+				Database: cfg.Database,
+			})
+		}).WithStartupTimeout(postgresStartupTimeout),
 		HostConfigModifier: defaultHostConfig(),
 	}
 
