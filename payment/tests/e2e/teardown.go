@@ -2,12 +2,12 @@ package e2e
 
 import (
 	"context"
+
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	"go.uber.org/zap"
 )
 
 func teardownTestEnvironment(ctx context.Context, env *TestEnvironment) {
-
 	log := logger.Logger()
 	log.Info(ctx, "🧹 Cleaning test environment...")
 

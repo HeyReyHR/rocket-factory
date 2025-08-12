@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
-
 	"github.com/docker/docker/api/types/container"
 	"go.uber.org/zap"
 )

@@ -2,11 +2,12 @@ package e2e
 
 import (
 	"context"
+	"os"
+	"time"
+
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
-	"os"
-	"time"
 )
 
 func (env *TestEnvironment) InsertTestPart(ctx context.Context) (string, error) {
@@ -51,7 +52,6 @@ func (env *TestEnvironment) InsertTestPart(ctx context.Context) (string, error) 
 	}
 
 	return partUuid, nil
-
 }
 
 func (env *TestEnvironment) InsertTestParts(ctx context.Context) ([]string, error) {

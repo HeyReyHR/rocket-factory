@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/HeyReyHR/rocket-factory/inventory/internal/app"
 	"github.com/HeyReyHR/rocket-factory/inventory/internal/config"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	"go.uber.org/zap"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 const configPath = "deploy/compose/inventory/.env" // Ревьюверу: как мне избежать этого при коммите?
@@ -39,7 +40,6 @@ func main() {
 		logger.Error(appCtx, "❌ Error occurred while running app", zap.Error(err))
 		return
 	}
-
 }
 
 func gracefulShutdown() {

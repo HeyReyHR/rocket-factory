@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+
 	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
 	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo/v2"
@@ -37,12 +38,12 @@ var _ = Describe("PaymentService", func() {
 				OrderUuid:     orderUuid,
 				PaymentMethod: payV1.PaymentMethod_SBP,
 			})
-			//logs, logErr := env.App.Logs(ctx)
-			//if logErr == nil {
+			// logs, logErr := env.App.Logs(ctx)
+			// if logErr == nil {
 			//	defer logs.Close()
 			//	logBytes, _ := io.ReadAll(logs)
 			//	fmt.Printf("=== CONTAINER LOGS ===\n%s\n=== END LOGS ===\n", string(logBytes))
-			//}
+			// }
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp.GetTransactionUuid()).ToNot(BeNil())
 		})

@@ -3,9 +3,9 @@ package inventory
 import (
 	"context"
 	"fmt"
-	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 
 	"github.com/HeyReyHR/rocket-factory/inventory/internal/model"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	"github.com/go-faster/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"

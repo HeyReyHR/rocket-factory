@@ -2,6 +2,7 @@ package migrator
 
 import (
 	"database/sql"
+
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/migrator/pg"
 )
 

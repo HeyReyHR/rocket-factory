@@ -23,7 +23,6 @@ func (env *TestEnvironment) ClearPostgresTable(ctx context.Context) error {
 func (env *TestEnvironment) InsertOrder(ctx context.Context) (string, error) {
 	orderUuid := uuid.NewString()
 	_, err := env.Postgres.Connection().Exec(ctx, "INSERT INTO orders (uuid, user_uuid, part_uuids, total_price, status) VALUES ($1, $2, $3, $4, $5)", orderUuid, "1", []string{"1", "2"}, 100, model.PENDING_PAYMENT)
-
 	if err != nil {
 		return "", err
 	}
@@ -33,7 +32,6 @@ func (env *TestEnvironment) InsertOrder(ctx context.Context) (string, error) {
 func (env *TestEnvironment) InsertCancelledOrder(ctx context.Context) (string, error) {
 	orderUuid := uuid.NewString()
 	_, err := env.Postgres.Connection().Exec(ctx, "INSERT INTO orders (uuid, user_uuid, part_uuids, total_price, status) VALUES ($1, $2, $3, $4, $5)", orderUuid, "1", []string{"1", "2"}, 100, model.CANCELLED)
-
 	if err != nil {
 		return "", err
 	}
@@ -115,6 +113,7 @@ func (env *TestEnvironment) InsertTestParts(ctx context.Context) (string, string
 
 	return partUuid1, partUuid2, nil
 }
+
 func (env *TestEnvironment) ClearInventoryCollection(ctx context.Context) error {
 	databaseName := os.Getenv("MONGO_DATABASE")
 	if databaseName == "" {

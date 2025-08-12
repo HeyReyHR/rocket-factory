@@ -23,7 +23,8 @@ const (
 	PostgresPortKey      = "POSTGRES_PORT"
 	PostgresDatabaseKey  = "POSTGRES_DB_NAME"
 	PostgresUsernameKey  = "POSTGRES_USER"
-	PostgresPasswordKey  = "POSTGRES_PASSWORD"
+	// nolint:gosec
+	PostgresPasswordKey = "POSTGRES_PASSWORD"
 
 	InventoryServiceClientPortKey = "INVENTORY_CLIENT_GRPC_PORT"
 	InventoryServiceClientHostKey = "INVENTORY_CLIENT_GRPC_HOST"

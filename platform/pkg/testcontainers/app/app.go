@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
-
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"
@@ -119,7 +118,6 @@ func (a *Container) Logs(ctx context.Context) (io.ReadCloser, error) {
 }
 
 func streamContainerLogs(ctx context.Context, container testcontainers.Container, out io.Writer) {
-	time.Sleep(2 * time.Second)
 	logs, err := container.Logs(ctx)
 	if err != nil {
 		logger.Error(ctx, "failed to get container logs", zap.Error(err))
@@ -136,7 +134,6 @@ func streamContainerLogs(ctx context.Context, container testcontainers.Container
 	if err != nil && !errors.Is(err, io.EOF) {
 		logger.Error(ctx, "error copying container logs", zap.Error(err))
 	}
-
 }
 
 func DefaultHostConfig() func(hc *container.HostConfig) {

@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+
 	invV1API "github.com/HeyReyHR/rocket-factory/inventory/internal/api/inventory/v1"
 	"github.com/HeyReyHR/rocket-factory/inventory/internal/config"
 	"github.com/HeyReyHR/rocket-factory/inventory/internal/repository"
@@ -49,6 +50,7 @@ func (d *diContainer) InventoryService(ctx context.Context) service.InventorySer
 
 func (d *diContainer) InventoryRepository(ctx context.Context) repository.InventoryRepository {
 	if d.inventoryRepository == nil {
+		// nolint:contextcheck
 		d.inventoryRepository = inventoryRepository.NewRepository(d.MongoDBHandle(ctx))
 	}
 

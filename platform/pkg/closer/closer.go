@@ -3,13 +3,14 @@ package closer
 import (
 	"context"
 	"fmt"
-	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
-	"github.com/go-faster/errors"
-	"go.uber.org/zap"
 	"os"
 	"os/signal"
 	"sync"
 	"time"
+
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
+	"github.com/go-faster/errors"
+	"go.uber.org/zap"
 )
 
 const shutdownTimeout = 5 * time.Second

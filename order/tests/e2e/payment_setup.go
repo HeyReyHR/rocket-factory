@@ -22,7 +22,6 @@ const (
 )
 
 func setupPaymentTestEnvironment(ctx context.Context, projectRoot string, generatedNetwork *network.Network) (*app.Container, error) {
-
 	logger.Info(ctx, "🚀 Setting up payment...")
 
 	grpcPort := getEnvWithLogging(ctx, paymentGrpcPortKey)
@@ -39,7 +38,6 @@ func setupPaymentTestEnvironment(ctx context.Context, projectRoot string, genera
 		app.WithStartupWait(waitStrategy),
 		app.WithLogger(logger.Logger()),
 	)
-
 	if err != nil {
 		logger.Fatal(ctx, "Cannot run payment container", zap.Error(err))
 		return nil, err

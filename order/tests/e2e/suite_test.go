@@ -3,7 +3,6 @@ package e2e
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -31,7 +30,6 @@ func TestIntegration(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-
 	err := logger.Init(loggerLevelValue, true)
 	if err != nil {
 		panic(fmt.Sprintf("Cannot init logger: %v", err))
@@ -53,12 +51,12 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
-	logs, logErr := env.App.Logs(suiteCtx)
-	if logErr == nil {
-		defer logs.Close()
-		logBytes, _ := io.ReadAll(logs)
-		fmt.Printf("=== CONTAINER LOGS ===\n%s\n=== END LOGS ===\n", string(logBytes))
-	}
+	// logs, logErr := env.App.Logs(suiteCtx)
+	// if logErr == nil {
+	//	defer logs.Close()
+	//	logBytes, _ := io.ReadAll(logs)
+	//	fmt.Printf("=== CONTAINER LOGS ===\n%s\n=== END LOGS ===\n", string(logBytes))
+	// }
 
 	logger.Info(context.Background(), "Shutting down tests")
 	if env != nil {

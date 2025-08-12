@@ -2,6 +2,7 @@ package pg
 
 import (
 	"database/sql"
+
 	"github.com/pressly/goose/v3"
 )
 

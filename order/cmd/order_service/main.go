@@ -19,7 +19,6 @@ const configPath = "deploy/compose/order/.env"
 
 func main() {
 	err := config.Load(configPath)
-
 	if err != nil {
 		panic(fmt.Errorf("failed to load config: %w", err))
 	}
@@ -40,7 +39,6 @@ func main() {
 		logger.Error(appCtx, "❌ Error occurred while running app", zap.Error(err))
 		return
 	}
-
 }
 
 func gracefulShutdown() {

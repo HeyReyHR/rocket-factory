@@ -26,7 +26,6 @@ func startPostgresContainer(ctx context.Context, cfg *Config) (testcontainers.Co
 		ContainerRequest: req,
 		Started:          true,
 	})
-
 	if err != nil {
 		return nil, errors.Errorf("failed to start postgres container: %v", err)
 	}

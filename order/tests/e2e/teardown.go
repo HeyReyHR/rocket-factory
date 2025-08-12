@@ -8,7 +8,6 @@ import (
 )
 
 func teardownTestEnvironment(ctx context.Context, env *TestEnvironment) {
-
 	log := logger.Logger()
 	log.Info(ctx, "🧹 Cleaning test environment...")
 
@@ -65,5 +64,4 @@ func cleanupTestEnvironment(ctx context.Context, env *TestEnvironment) {
 			logger.Info(ctx, "🛑 network deleted")
 		}
 	}
-
 }

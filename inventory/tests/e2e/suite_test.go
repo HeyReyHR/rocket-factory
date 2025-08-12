@@ -3,15 +3,16 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"testing"
+	"time"
+
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	"github.com/joho/godotenv"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/zap"
-	"os"
-	"path/filepath"
-	"testing"
-	"time"
 )
 
 const testsTimeout = 5 * time.Minute
@@ -29,7 +30,6 @@ func TestIntegration(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-
 	err := logger.Init(loggerLevelValue, true)
 	if err != nil {
 		panic(fmt.Sprintf("Cannot init logger: %v", err))

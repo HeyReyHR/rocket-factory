@@ -1,9 +1,10 @@
 package config
 
 import (
+	"os"
+
 	"github.com/HeyReyHR/rocket-factory/payment/internal/config/env"
 	"github.com/joho/godotenv"
-	"os"
 )
 
 var appConfig *config

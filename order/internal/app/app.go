@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/HeyReyHR/rocket-factory/order/internal/api/health"
 	"github.com/HeyReyHR/rocket-factory/order/internal/config"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
@@ -12,12 +15,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
-	"net/http"
-	"time"
 )
 
-const readHeaderTimeout = 5 * time.Second
-const requestTimeout = 10 * time.Second
+const (
+	readHeaderTimeout = 5 * time.Second
+	requestTimeout    = 10 * time.Second
+)
 
 type App struct {
 	diContainer *diContainer
@@ -75,7 +78,6 @@ func (a *App) initCloser(_ context.Context) error {
 }
 
 func (a *App) initHTTPServer(ctx context.Context) error {
-
 	orderAPI := a.diContainer.OrderV1API(ctx)
 
 	orderServer, err := orderV1.NewServer(orderAPI)
@@ -97,12 +99,15 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	} // TODO INTERCEPTOR/BETTER ERRORS
 
 	closer.AddNamed("HTTP server", func(ctx context.Context) error {
-		a.httpServer.Shutdown(ctx)
+		err = a.httpServer.Shutdown(ctx)
+		if err != nil {
+			logger.Error(ctx, "Cannot shutdown server")
+		}
 		return nil
 	})
 
 	health.Health(r)
-	
+
 	return nil
 }
 

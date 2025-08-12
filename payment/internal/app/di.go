@@ -2,22 +2,17 @@ package app
 
 import (
 	"context"
-	payV1API "github.com/HeyReyHR/rocket-factory/payment/internal/api/payment/v1"
 
+	payV1API "github.com/HeyReyHR/rocket-factory/payment/internal/api/payment/v1"
 	"github.com/HeyReyHR/rocket-factory/payment/internal/service"
 	paymentService "github.com/HeyReyHR/rocket-factory/payment/internal/service/payment"
-
 	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type diContainer struct {
 	paymentV1API payV1.PaymentServiceServer
 
 	paymentService service.PaymentService
-
-	mongoDBClient *mongo.Client
-	mongoDBHandle *mongo.Database
 }
 
 func NewDiContainer() *diContainer {

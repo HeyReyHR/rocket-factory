@@ -32,6 +32,10 @@ var _ = Describe("OrderService", func() {
 	Describe("PostOrder", func() {
 		It("need to create order", func() {
 			partUuid, _, err := env.InsertTestParts(ctx) // idk maybe ts is inconsistent (f.e. PostOrder would run faster than insertion) and overall looks like ass yk
+			if err != nil {
+				Fail(fmt.Sprintf("Cannot insert test parts: %v", err))
+			}
+
 			resp, err := orderClient.PostOrder(ctx, &orderV1.CreateOrderRequest{
 				UserUUID:  "1",
 				PartUuids: []string{partUuid},
@@ -48,6 +52,9 @@ var _ = Describe("OrderService", func() {
 
 		It("need return out of stock error", func() {
 			_, partUuidOutOfStock, err := env.InsertTestParts(ctx) // same as line 34
+			if err != nil {
+				Fail(fmt.Sprintf("Cannot insert test parts: %v", err))
+			}
 			resp, err := orderClient.PostOrder(ctx, &orderV1.CreateOrderRequest{
 				UserUUID:  "1",
 				PartUuids: []string{partUuidOutOfStock},
@@ -102,19 +109,18 @@ var _ = Describe("OrderService", func() {
 				Fail(fmt.Sprintf("Response body is not proper and doesnt contain expected error: %v", resp))
 			}
 		})
-
 	})
 
 	Describe("Pay", func() {
 		It("needs to pay order", func() {
-			resp, err := orderClient.PayOrder(ctx, &orderV1.OrderPayRequest{
+			payResp, err := orderClient.PayOrder(ctx, &orderV1.OrderPayRequest{
 				PaymentMethod: orderV1.PaymentMethodCARD,
 			}, orderV1.PayOrderParams{
 				OrderUUID: orderUuid,
 			})
 			Expect(err).ToNot(HaveOccurred())
 
-			if resp, ok := resp.(*orderV1.OrderPayResponse); ok {
+			if resp, ok := payResp.(*orderV1.OrderPayResponse); ok {
 				Expect(resp.TransactionUUID).ToNot(BeNil())
 				Expect(resp.TransactionUUID).ToNot(Equal(""))
 				order, err := orderClient.GetOrder(ctx, orderV1.GetOrderParams{
@@ -138,8 +144,8 @@ var _ = Describe("OrderService", func() {
 				OrderUUID: orderUuid,
 			})
 			Expect(err).ToNot(HaveOccurred())
-			if resp, ok := resp.(*orderV1.BadRequestError); ok {
-				Expect(resp.Code).To(Equal(400)) //TODO MESSAGE INSTEAD OF CODE
+			if badReqResp, ok := resp.(*orderV1.BadRequestError); ok {
+				Expect(badReqResp.Code).To(Equal(400)) // TODO MESSAGE INSTEAD OF CODE
 			} else {
 				Fail(fmt.Sprintf("Response body is not proper and doesnt contain expected error: %v", resp))
 			}
@@ -157,8 +163,8 @@ var _ = Describe("OrderService", func() {
 			})
 			Expect(err).ToNot(HaveOccurred())
 
-			if resp, ok := resp.(*orderV1.BadRequestError); ok {
-				Expect(resp.Code).To(Equal(400))
+			if badReqResp, ok := resp.(*orderV1.BadRequestError); ok {
+				Expect(badReqResp.Code).To(Equal(400))
 			} else {
 				Fail(fmt.Sprintf("Response body is not proper and doesnt contain expected error: %v", resp))
 			}

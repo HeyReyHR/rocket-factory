@@ -24,7 +24,6 @@ const (
 )
 
 func setupInventoryTestEnvironment(ctx context.Context, projectRoot string, generatedNetwork *network.Network) (*mongo.Container, *app.Container, error) {
-
 	logger.Info(ctx, "🚀 Setting up inventory...")
 
 	mongoUsername := getEnvWithLogging(ctx, testcontainers.MongoUsernameKey)
@@ -42,7 +41,6 @@ func setupInventoryTestEnvironment(ctx context.Context, projectRoot string, gene
 		mongo.WithAuth(mongoUsername, mongoPassword),
 		mongo.WithLogger(logger.Logger()),
 	)
-
 	if err != nil {
 		logger.Fatal(ctx, "Cannot run MongoDB", zap.Error(err))
 		return nil, nil, err
@@ -66,7 +64,6 @@ func setupInventoryTestEnvironment(ctx context.Context, projectRoot string, gene
 		app.WithStartupWait(waitStrategy),
 		app.WithLogger(logger.Logger()),
 	)
-
 	if err != nil {
 		logger.Fatal(ctx, "Cannot run inventory container", zap.Error(err))
 		return nil, nil, err

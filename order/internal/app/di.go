@@ -64,7 +64,6 @@ func (d *diContainer) PaymentClient(ctx context.Context) client.PaymentClient { 
 		connPay, err := grpc.NewClient(
 			config.AppConfig().PaymentGRPC.Address(),
 			grpc.WithTransportCredentials(insecure.NewCredentials()))
-
 		if err != nil {
 			logger.Error(ctx, "❌ failed to connect to payment service", zap.Error(err))
 		}
@@ -85,7 +84,6 @@ func (d *diContainer) InventoryClient(ctx context.Context) client.InventoryClien
 		connInv, err := grpc.NewClient(
 			config.AppConfig().InventoryGRPC.Address(),
 			grpc.WithTransportCredentials(insecure.NewCredentials()))
-
 		if err != nil {
 			logger.Error(ctx, "❌ failed to connect to inventory service", zap.Error(err))
 			return nil
@@ -115,13 +113,11 @@ func (d *diContainer) PostgresDBConn(ctx context.Context) *pgx.Conn {
 		dbConn, dbErr := pgx.Connect(ctx, config.AppConfig().Postgres.URI())
 		if dbErr != nil {
 			panic(fmt.Sprintf("❌ failed to connect to Postgres: %s\n", dbErr.Error()))
-
 		}
 
 		dbErr = dbConn.Ping(ctx)
 		if dbErr != nil {
 			panic(fmt.Sprintf("❌ failed ping database: %s\n", dbErr.Error()))
-			return nil
 		}
 
 		migrationsDir := "migrations"

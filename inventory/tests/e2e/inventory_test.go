@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+
 	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -73,7 +74,6 @@ var _ = Describe("InventoryService", func() {
 
 			Expect(err).ToNot(HaveOccurred(), "expected successful multiple insertion in MongoDB")
 			Expect(err).To(BeNil())
-
 		})
 
 		It("need to filter parts via uuids", func() {
@@ -103,6 +103,5 @@ var _ = Describe("InventoryService", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp.GetParts()).To(BeNil())
 		})
-
 	})
 })

@@ -2,6 +2,9 @@ package e2e
 
 import (
 	"context"
+	"os"
+	"time"
+
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/testcontainers/app"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/testcontainers/network"
@@ -9,8 +12,6 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"go.uber.org/zap"
-	"os"
-	"time"
 )
 
 const (
@@ -32,7 +33,6 @@ type TestEnvironment struct {
 }
 
 func setupTestEnvironment(ctx context.Context) *TestEnvironment {
-
 	logger.Info(ctx, "🚀 Setting up test environment...")
 
 	generatedNetwork, err := network.NewNetwork(ctx, projectName)
@@ -57,7 +57,6 @@ func setupTestEnvironment(ctx context.Context) *TestEnvironment {
 		app.WithStartupWait(waitStrategy),
 		app.WithLogger(logger.Logger()),
 	)
-
 	if err != nil {
 		cleanupTestEnvironment(ctx, &TestEnvironment{Network: generatedNetwork})
 		logger.Fatal(ctx, "Cannot run app container", zap.Error(err))

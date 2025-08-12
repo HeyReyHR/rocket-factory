@@ -3,6 +3,7 @@ package inventory
 import (
 	"context"
 	"fmt"
+
 	serviceModel "github.com/HeyReyHR/rocket-factory/inventory/internal/model"
 	"github.com/HeyReyHR/rocket-factory/inventory/internal/repository/converter"
 	"github.com/HeyReyHR/rocket-factory/inventory/internal/repository/model"
@@ -50,7 +51,6 @@ func (r *repository) ListParts(ctx context.Context, filter serviceModel.Filter) 
 	defer func() {
 		cerr := cursor.Close(ctx)
 		if cerr != nil {
-
 			logger.Error(ctx, fmt.Sprintf("failed to close cursor: %+v", cerr))
 		}
 	}()
@@ -61,7 +61,7 @@ func (r *repository) ListParts(ctx context.Context, filter serviceModel.Filter) 
 		logger.Error(ctx, fmt.Sprintf("cursor.All error: %+v", err))
 		return nil, err
 	}
-	
+
 	logger.Debug(ctx, fmt.Sprintf("Found %d parts: %v", len(parts), parts))
 	return converter.RepoModelsToPartModels(parts), nil
 }
