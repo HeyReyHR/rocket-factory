@@ -17,6 +17,7 @@ func startPostgresContainer(ctx context.Context, cfg *Config) (testcontainers.Co
 		Env: map[string]string{
 			postgresEnvUsernameKey: cfg.Username,
 			postgresEnvPasswordKey: cfg.Password,
+			postgresEnvDatabaseKey: cfg.Database,
 		},
 		WaitingFor:         wait.ForListeningPort(postgresPort + "/tcp").WithStartupTimeout(postgresStartupTimeout),
 		HostConfigModifier: defaultHostConfig(),
@@ -48,7 +49,7 @@ func getContainerHostPort(ctx context.Context, container testcontainers.Containe
 
 func buildPostgresURI(cfg *Config) string {
 	return fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s",
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		cfg.Username,
 		cfg.Password,
 		cfg.Host,

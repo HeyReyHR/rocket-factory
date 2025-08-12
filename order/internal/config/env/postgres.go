@@ -11,7 +11,7 @@ type postgresEnvConfig struct {
 	Port     string `env:"POSTGRES_PORT,required"`
 	User     string `env:"POSTGRES_USER,required"`
 	Password string `env:"POSTGRES_PASSWORD,required"`
-	Database string `env:"POSTGRES_DB_NAME,required"`
+	Database string `env:"POSTGRES_DB,required"`
 }
 
 type postgresConfig struct {

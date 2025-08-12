@@ -21,7 +21,7 @@ const (
 	PostgresImageNameKey = "POSTGRES_IMAGE_NAME"
 	PostgresHostKey      = "POSTGRES_HOST"
 	PostgresPortKey      = "POSTGRES_PORT"
-	PostgresDatabaseKey  = "POSTGRES_DB_NAME"
+	PostgresDatabaseKey  = "POSTGRES_DB"
 	PostgresUsernameKey  = "POSTGRES_USER"
 	// nolint:gosec
 	PostgresPasswordKey = "POSTGRES_PASSWORD"

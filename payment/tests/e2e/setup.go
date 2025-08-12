@@ -20,7 +20,7 @@ const (
 	paymentDockerfile = "deploy/docker/payment/Dockerfile"
 
 	// Env
-	grpcPortKey = "PAYMENT_GRPC_PORT"
+	grpcPortKey = "GRPC_PORT"
 
 	// Env values
 	loggerLevelValue = "debug"

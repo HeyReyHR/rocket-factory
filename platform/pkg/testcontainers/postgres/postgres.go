@@ -15,6 +15,7 @@ const (
 
 	postgresEnvUsernameKey = "POSTGRES_USER"
 	postgresEnvPasswordKey = "POSTGRES_PASSWORD" //nolint:gosec
+	postgresEnvDatabaseKey = "POSTGRES_DB"
 )
 
 type Container struct {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	orderV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/openapi/order/v1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -21,7 +20,6 @@ var _ = Describe("OrderService", func() {
 		ctx, cancel = context.WithCancel(suiteCtx)
 
 		var err error
-		logger.Info(ctx, env.App.Address())
 		orderClient, err = orderV1.NewClient("http://" + env.App.Address())
 		Expect(err).ToNot(HaveOccurred())
 	})

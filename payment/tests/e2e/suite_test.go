@@ -37,7 +37,7 @@ var _ = BeforeSuite(func() {
 
 	suiteCtx, suiteCancel = context.WithTimeout(context.Background(), testsTimeout)
 
-	envVars, err := godotenv.Read(filepath.Join("..", "..", "..", "deploy", "env", ".env"))
+	envVars, err := godotenv.Read(filepath.Join("..", "..", "..", "deploy", "compose", "payment", ".env"))
 	if err != nil {
 		logger.Fatal(suiteCtx, "Cannot load .env", zap.Error(err))
 	}

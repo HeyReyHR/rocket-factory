@@ -20,7 +20,7 @@ COPY shared/go.mod shared/go.sum ./shared/
 COPY order/go.mod order/go.sum ./order/
 COPY inventory/go.mod inventory/go.sum ./inventory/
 COPY payment/go.mod payment/go.sum ./payment/
-COPY deploy/env/.env /app/deploy/env/.env
+COPY deploy/compose/payment/.env /app/deploy/compose/payment/.env
 
 # Загружаем все зависимости, указанные в модульных файлах
 RUN go mod download
@@ -62,7 +62,7 @@ USER appuser
 COPY --from=builder /app/app-payment .
 
 # Копируем .env файл в рабочую директорию
-COPY --from=builder /app/deploy/env/.env ./deploy/env/.env
+COPY --from=builder /app/deploy/compose/payment/.env ./deploy/compose/payment/.env
 
 COPY --from=builder /app/grpc-health-probe /bin/grpc-health-probe
 
