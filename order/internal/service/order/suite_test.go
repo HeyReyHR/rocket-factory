@@ -5,6 +5,7 @@ import (
 
 	mocksClient "github.com/HeyReyHR/rocket-factory/order/internal/client/mocks"
 	"github.com/HeyReyHR/rocket-factory/order/internal/repository/mocks"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -20,6 +21,7 @@ func (s *ServiceSuite) SetupTest() {
 	s.orderRepository = mocks.NewOrderRepository(s.T())
 	s.inventoryClient = mocksClient.NewInventoryClient(s.T())
 	s.paymentClient = mocksClient.NewPaymentClient(s.T())
+	logger.SetNoopLogger()
 	s.service = NewService(s.inventoryClient, s.paymentClient, s.orderRepository)
 }
 

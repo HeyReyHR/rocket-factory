@@ -77,7 +77,7 @@ func Logger() *logger {
 	return globalLogger
 }
 
-func SetNopLogger() {
+func SetNoopLogger() {
 	globalLogger = &logger{
 		zapLogger: zap.NewNop(),
 	}
