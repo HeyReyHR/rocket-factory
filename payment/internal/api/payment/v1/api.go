@@ -10,7 +10,7 @@ type api struct {
 	payV1.UnimplementedPaymentServiceServer
 }
 
-func NewPaymentApi(paymentService service.PaymentService) *api {
+func NewApi(paymentService service.PaymentService) *api {
 	return &api{
 		service: paymentService,
 	}

@@ -2,11 +2,11 @@ package inventory
 
 import (
 	"context"
-	"log"
-
+	"fmt"
 	serviceModel "github.com/HeyReyHR/rocket-factory/inventory/internal/model"
 	"github.com/HeyReyHR/rocket-factory/inventory/internal/repository/converter"
 	"github.com/HeyReyHR/rocket-factory/inventory/internal/repository/model"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -38,22 +38,30 @@ func (r *repository) ListParts(ctx context.Context, filter serviceModel.Filter) 
 			"$in": filter.Tags,
 		}
 	}
+
+	logger.Error(ctx, fmt.Sprintf("MongoDB filter query: %+v", filterQuery))
+
 	cursor, err := r.collection.Find(ctx, filterQuery)
 	if err != nil {
+
+		logger.Error(ctx, fmt.Sprintf("MongoDB Find error: %+v", filterQuery))
 		return nil, err
 	}
 	defer func() {
 		cerr := cursor.Close(ctx)
 		if cerr != nil {
-			log.Printf("failed to close cursor: %v\n", cerr)
+
+			logger.Error(ctx, fmt.Sprintf("failed to close cursor: %+v", cerr))
 		}
 	}()
 
 	var parts []model.Part
 	err = cursor.All(ctx, &parts)
 	if err != nil {
+		logger.Error(ctx, fmt.Sprintf("cursor.All error: %+v", err))
 		return nil, err
 	}
-
+	
+	logger.Debug(ctx, fmt.Sprintf("Found %d parts: %v", len(parts), parts))
 	return converter.RepoModelsToPartModels(parts), nil
 }

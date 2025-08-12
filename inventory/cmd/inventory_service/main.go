@@ -3,85 +3,50 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"net"
-	"os"
+	"github.com/HeyReyHR/rocket-factory/inventory/internal/app"
+	"github.com/HeyReyHR/rocket-factory/inventory/internal/config"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
+	"go.uber.org/zap"
 	"os/signal"
 	"syscall"
-
-	api "github.com/HeyReyHR/rocket-factory/inventory/internal/api/inventory/v1"
-	repository "github.com/HeyReyHR/rocket-factory/inventory/internal/repository/inventory"
-	service "github.com/HeyReyHR/rocket-factory/inventory/internal/service/inventory"
-	"github.com/HeyReyHR/rocket-factory/shared/pkg/interceptors"
-	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	"time"
 )
 
-const grpcPort = 50051
+const configPath = "deploy/compose/inventory/.env" // Ревьюверу: как мне избежать этого при коммите?
+
+// const configPath = "/home/heyrey/cool_projects/rocket-factory/deploy/compose/inventory/.env"
 
 func main() {
-	ctx := context.Background()
-
-	dbURI := "mongodb://inventory-service-user:mongo@localhost:27017/database?authSource=admin"
-
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(dbURI))
+	err := config.Load(configPath)
 	if err != nil {
-		log.Fatalf("failed to connect to MongoDB: %v\n", err)
+		panic(fmt.Errorf("failed to load config: %w", err))
 	}
+	appCtx, appCancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer appCancel()
+	defer gracefulShutdown()
 
-	defer func() {
-		if cerr := client.Disconnect(ctx); cerr != nil {
-			log.Printf("failed to disconnect from MongoDB: %v\n", cerr)
-		}
-	}()
+	closer.Configure(syscall.SIGINT, syscall.SIGTERM)
 
-	err = client.Ping(ctx, nil)
+	a, err := app.New(appCtx)
 	if err != nil {
-		log.Printf("failed to ping MongoDB: %v\n", err)
-	}
-
-	db := client.Database("inventory-service")
-
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
-	if err != nil {
-		log.Printf("failed to listen: %v\n", err)
+		logger.Error(appCtx, "❌ Could not create app", zap.Error(err))
 		return
 	}
 
-	defer func() {
-		if cerr := lis.Close(); cerr != nil {
-			log.Printf("failed to close listener: %v\n", cerr)
-		}
-	}()
+	err = a.Run(appCtx)
+	if err != nil {
+		logger.Error(appCtx, "❌ Error occurred while running app", zap.Error(err))
+		return
+	}
 
-	s := grpc.NewServer(grpc.UnaryInterceptor(interceptors.UnaryErrorInterceptor()))
+}
 
-	newRepository := repository.NewRepository(db)
+func gracefulShutdown() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	newService := service.NewService(newRepository)
-
-	newApi := api.NewApi(newService)
-
-	invV1.RegisterInventoryServiceServer(s, newApi)
-
-	reflection.Register(s)
-
-	go func() {
-		log.Printf("🚀 Inventory service is running on port %d", grpcPort)
-		err := s.Serve(lis)
-		if err != nil {
-			log.Printf("failed to serve: %v\n", err)
-			return
-		}
-	}()
-
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	log.Println("🛑 Shutting down inventory service...")
-	s.GracefulStop()
-	log.Println("✅ Inventory service stopped")
+	if err := closer.CloseAll(ctx); err != nil {
+		logger.Error(ctx, "❌ Error occurred while shutting down", zap.Error(err))
+	}
 }
