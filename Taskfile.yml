@@ -294,7 +294,7 @@ tasks:
         
           TARGET_PKGS=$(go list ./$mod/... \
             | grep -E '/(internal/(service|repository))' \
-            | grep -vE '/(mocks|testdata|pkg|api|proto|pb|cmd)' \
+            | grep -vE '/(mocks|testdata|pkg|api|proto|pb|cmd|tests/e2e)' \
             | paste -sd "," -)
         
           if [ -z "$TARGET_PKGS" ]; then
@@ -693,4 +693,3 @@ tasks:
           fi
         done
         exit $ERR
-        
