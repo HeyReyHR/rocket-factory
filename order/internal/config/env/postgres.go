@@ -7,11 +7,12 @@ import (
 )
 
 type postgresEnvConfig struct {
-	Host     string `env:"POSTGRES_HOST,required"`
-	Port     string `env:"POSTGRES_PORT,required"`
-	User     string `env:"POSTGRES_USER,required"`
-	Password string `env:"POSTGRES_PASSWORD,required"`
-	Database string `env:"POSTGRES_DB,required"`
+	Host          string `env:"POSTGRES_HOST,required"`
+	Port          string `env:"POSTGRES_PORT,required"`
+	User          string `env:"POSTGRES_USER,required"`
+	Password      string `env:"POSTGRES_PASSWORD,required"`
+	Database      string `env:"POSTGRES_DB,required"`
+	MigrationsDir string `env:"MIGRATION_DIRECTORY,required"`
 }
 
 type postgresConfig struct {
@@ -37,6 +38,10 @@ func (cfg *postgresConfig) URI() string {
 		cfg.raw.Port,
 		cfg.raw.Database,
 	)
+}
+
+func (cfg *postgresConfig) MigrationsDir() string {
+	return cfg.raw.MigrationsDir
 }
 
 func (cfg *postgresConfig) DatabaseName() string {

@@ -120,10 +120,7 @@ func (d *diContainer) PostgresDBConn(ctx context.Context) *pgx.Conn {
 			panic(fmt.Sprintf("❌ failed ping database: %s\n", dbErr.Error()))
 		}
 
-		migrationsDir := "migrations"
-
-		migratorRunner := migrator.NewPgMigrator(stdlib.OpenDB(*dbConn.Config().Copy()), migrationsDir)
-
+		migratorRunner := migrator.NewPgMigrator(stdlib.OpenDB(*dbConn.Config().Copy()), config.AppConfig().Postgres.MigrationsDir())
 		dbErr = migratorRunner.Up()
 		if dbErr != nil {
 			logger.Error(ctx, "❌ failed to run migrations", zap.Error(dbErr))

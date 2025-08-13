@@ -12,4 +12,5 @@ type ServiceConfig interface {
 type PostgresConfig interface {
 	URI() string
 	DatabaseName() string
+	MigrationsDir() string
 }
