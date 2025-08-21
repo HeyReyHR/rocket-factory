@@ -2,151 +2,50 @@ package main
 
 import (
 	"context"
-	"errors"
-	"log"
-	"net"
-	"net/http"
-	"os"
+	"fmt"
 	"os/signal"
 	"syscall"
 	"time"
 
-	orderApiV1 "github.com/HeyReyHR/rocket-factory/order/internal/api/order/v1"
-	inventoryClientV1 "github.com/HeyReyHR/rocket-factory/order/internal/client/inventory/v1"
-	paymentClientV1 "github.com/HeyReyHR/rocket-factory/order/internal/client/payment/v1"
-	"github.com/HeyReyHR/rocket-factory/order/internal/migrator"
-	repoOrder "github.com/HeyReyHR/rocket-factory/order/internal/repository/order"
-	serviceOrder "github.com/HeyReyHR/rocket-factory/order/internal/service/order"
-	orderV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/openapi/order/v1"
-	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
-	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/stdlib"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"github.com/HeyReyHR/rocket-factory/order/internal/app"
+	"github.com/HeyReyHR/rocket-factory/order/internal/config"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
+	"go.uber.org/zap"
 )
 
-const (
-	paymentServiceAddress   = "localhost:50052"
-	inventoryServiceAddress = "localhost:50051"
-	httpPort                = "8080"
-	requestTimeout          = 5 * time.Second
-	readHeaderTimeout       = 5 * time.Second
-	shutdownTimeout         = 10 * time.Second
-)
+// const configPath = "/home/heyrey/cool_projects/rocket-factory/deploy/compose/order/.env"
+const configPath = "deploy/compose/order/.env"
 
 func main() {
-	ctx := context.Background()
-
-	connPay, err := grpc.NewClient(
-		paymentServiceAddress,
-		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	err := config.Load(configPath)
 	if err != nil {
-		log.Fatalf("failed to connect to payment service: %s", err)
+		panic(fmt.Errorf("failed to load config: %w", err))
 	}
+	appCtx, appCancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer appCancel()
+	defer gracefulShutdown()
 
-	defer func() {
-		if cerr := connPay.Close(); cerr != nil {
-			log.Printf("failed to close connection with payment: %s", cerr)
-		}
-	}()
+	closer.Configure(syscall.SIGINT, syscall.SIGTERM)
 
-	payment := payV1.NewPaymentServiceClient(connPay)
-
-	connInv, err := grpc.NewClient(
-		inventoryServiceAddress,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	a, err := app.New(appCtx)
 	if err != nil {
-		log.Printf("failed to connect to inventory service: %s", err)
-	}
-
-	defer func() {
-		if cerr := connInv.Close(); cerr != nil {
-			log.Printf("failed to close connection with inventory: %s", cerr)
-		}
-	}()
-
-	inventory := invV1.NewInventoryServiceClient(connInv)
-
-	paymentClient := paymentClientV1.NewPaymentClient(payment)
-	inventoryClient := inventoryClientV1.NewInventoryClient(inventory)
-
-	dbConn, dbErr := pgx.Connect(ctx, "postgres://order-service:postgres@localhost:5444/postgres")
-	if dbErr != nil {
-		log.Printf("failed to connect to database: %s\n", dbErr)
-		return
-	}
-	defer func() {
-		cerr := dbConn.Close(ctx)
-		if cerr != nil {
-			log.Printf("failed to close database connection: %s\n", cerr)
-		}
-	}()
-
-	dbErr = dbConn.Ping(ctx)
-	if dbErr != nil {
-		log.Printf("failed to ping database: %s\n", dbErr)
+		logger.Error(appCtx, "❌ Could not create app", zap.Error(err))
 		return
 	}
 
-	migrationsDir := "migrations"
-	migratorRunner := migrator.NewMigrator(stdlib.OpenDB(*dbConn.Config().Copy()), migrationsDir)
-
-	dbErr = migratorRunner.Up()
-	if dbErr != nil {
-		log.Printf("failed to run migrations: %s\n", dbErr)
+	err = a.Run(appCtx)
+	if err != nil {
+		logger.Error(appCtx, "❌ Error occurred while running app", zap.Error(err))
 		return
 	}
+}
 
-	repository := repoOrder.NewRepository(dbConn)
-
-	orderService := serviceOrder.NewService(inventoryClient, paymentClient, repository)
-
-	orderApi := orderApiV1.NewApi(orderService)
-
-	orderServer, err := orderV1.NewServer(orderApi)
-	if err != nil {
-		log.Printf("Error occured when creating OpenAPI server: %s", err)
-	}
-
-	r := chi.NewRouter()
-
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Timeout(10 * time.Second))
-
-	r.Mount("/", orderServer)
-
-	server := &http.Server{
-		Addr:              net.JoinHostPort("localhost", httpPort),
-		Handler:           r,
-		ReadHeaderTimeout: readHeaderTimeout,
-	}
-
-	go func() {
-		log.Printf("🚀 Starting server on port %s\n", httpPort)
-		err = server.ListenAndServe()
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Printf("❌ Error occurred when starting server: %s\n", err)
-		}
-	}()
-
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-
-	log.Printf("🛑 Shutting down server...")
-
-	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+func gracefulShutdown() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err = server.Shutdown(ctx)
-	if err != nil {
-		log.Printf("❌ Error occurred when shutting down server: %s\n", err)
+	if err := closer.CloseAll(ctx); err != nil {
+		logger.Error(ctx, "❌ Error occurred while shutting down", zap.Error(err))
 	}
-
-	log.Println("✅ Server stopped")
 }

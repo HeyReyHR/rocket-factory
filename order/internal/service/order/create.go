@@ -2,10 +2,12 @@ package order
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	"github.com/HeyReyHR/rocket-factory/order/internal/model"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 func (s *service) Create(ctx context.Context, userUuid string, partUuids []string) (string, float64, error) {
@@ -16,6 +18,7 @@ func (s *service) Create(ctx context.Context, userUuid string, partUuids []strin
 		Uuids: partUuids,
 	})
 	if err != nil {
+		logger.Error(ctx, "list parts failed", zap.Error(err))
 		return "", 0, model.ErrListPartsFailed
 	}
 
@@ -25,7 +28,7 @@ func (s *service) Create(ctx context.Context, userUuid string, partUuids []strin
 
 	for _, part := range resp {
 		if part.StockQuantity == 0 {
-			log.Printf("Part with uuid %s is out of stock", part.Uuid)
+			logger.Info(ctx, fmt.Sprintf("Part with uuid %s is out of stock", part.Uuid))
 			return "", 0, model.ErrPartOutOfStock
 		}
 	}

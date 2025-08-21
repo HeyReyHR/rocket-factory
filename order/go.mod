@@ -59,3 +59,5 @@ replace github.com/HeyReyHR/rocket-factory/shared => ../shared
 replace github.com/HeyReyHR/rocket-factory/inventory => ../inventory
 
 replace github.com/HeyReyHR/rocket-factory/payment => ../payment
+
+replace github.com/HeyReyHR/rocket-factory/platform => ../platform

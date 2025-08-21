@@ -1,59 +1,52 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"log"
-	"net"
-	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
-	v1 "github.com/HeyReyHR/rocket-factory/payment/internal/api/payment/v1"
-	"github.com/HeyReyHR/rocket-factory/payment/internal/service/payment"
-	"github.com/HeyReyHR/rocket-factory/shared/pkg/interceptors"
-	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	"github.com/HeyReyHR/rocket-factory/payment/internal/app"
+	"github.com/HeyReyHR/rocket-factory/payment/internal/config"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
+	"go.uber.org/zap"
 )
 
-const grpcPort = 50052
+// const configPath = "/home/heyrey/cool_projects/rocket-factory/deploy/compose/payment/.env"
+
+const configPath = "deploy/compose/payment/.env" // Ревьюверу: как мне избежать этого при коммите?
 
 func main() {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
+	err := config.Load(configPath)
 	if err != nil {
-		log.Printf("failed to listen: %v\n", err)
+		panic(fmt.Errorf("failed to load config: %w", err))
+	}
+	appCtx, appCancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer appCancel()
+	defer gracefulShutdown()
+
+	closer.Configure(syscall.SIGINT, syscall.SIGTERM)
+
+	a, err := app.New(appCtx)
+	if err != nil {
+		logger.Error(appCtx, "❌ Could not create app", zap.Error(err))
 		return
 	}
 
-	defer func() {
-		if cerr := lis.Close(); cerr != nil {
-			log.Printf("failed to close listener: %v\n", cerr)
-		}
-	}()
+	err = a.Run(appCtx)
+	if err != nil {
+		logger.Error(appCtx, "❌ Error occurred while running app", zap.Error(err))
+		return
+	}
+}
 
-	s := grpc.NewServer(grpc.UnaryInterceptor(interceptors.UnaryErrorInterceptor()))
+func gracefulShutdown() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	service := payment.NewService()
-
-	api := v1.NewPaymentApi(service)
-
-	payV1.RegisterPaymentServiceServer(s, api)
-
-	reflection.Register(s)
-
-	go func() {
-		log.Printf("🚀 Payment service is running on port %d", grpcPort)
-		err := s.Serve(lis)
-		if err != nil {
-			log.Printf("failed to serve: %v\n", err)
-			return
-		}
-	}()
-
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	log.Println("🛑 Shutting down payment service...")
-	s.GracefulStop()
-	log.Println("✅ Payment service stopped")
+	if err := closer.CloseAll(ctx); err != nil {
+		logger.Error(ctx, "❌ Error occurred while shutting down", zap.Error(err))
+	}
 }

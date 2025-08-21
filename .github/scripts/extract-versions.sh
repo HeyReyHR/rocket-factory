@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Скрипт для извлечения версий инструментов из Taskfile.yml
-# Использование: .github/scripts/extract_versions.sh
+# Использование: .github/scripts/extract-versions.sh
 
 # Путь к Taskfile.yml
 TASKFILE="Taskfile.yml"
