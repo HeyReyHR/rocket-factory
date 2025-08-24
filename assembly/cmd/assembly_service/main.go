@@ -1,0 +1,53 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/HeyReyHR/rocket-factory/assembly/internal/app"
+	"github.com/HeyReyHR/rocket-factory/assembly/internal/config"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
+	"go.uber.org/zap"
+)
+
+const configPath = "/home/heyrey/cool_projects/rocket-factory/deploy/compose/assembly/.env"
+
+// const configPath = "./deploy/compose/assembly/.env"
+
+func main() {
+	err := config.Load(configPath)
+	if err != nil {
+		panic(fmt.Errorf("failed to load config: %w", err))
+	}
+
+	appCtx, appCancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer appCancel()
+	defer gracefulShutdown()
+
+	closer.Configure(syscall.SIGINT, syscall.SIGTERM)
+
+	a, err := app.New(appCtx)
+	if err != nil {
+		logger.Error(appCtx, "❌ Cannot create new app", zap.Error(err))
+		return
+	}
+
+	err = a.Run(appCtx)
+	if err != nil {
+		logger.Error(appCtx, "❌ Error when running app", zap.Error(err))
+		return
+	}
+}
+
+func gracefulShutdown() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := closer.CloseAll(ctx); err != nil {
+		logger.Error(ctx, "❌ Error when shutting down", zap.Error(err))
+	}
+}

@@ -14,8 +14,9 @@ import (
 	"go.uber.org/zap"
 )
 
-// const configPath = "/home/heyrey/cool_projects/rocket-factory/deploy/compose/order/.env"
-const configPath = "deploy/compose/order/.env"
+const configPath = "/home/heyrey/cool_projects/rocket-factory/deploy/compose/order/.env"
+
+// const configPath = "deploy/compose/order/.env"
 
 func main() {
 	err := config.Load(configPath)

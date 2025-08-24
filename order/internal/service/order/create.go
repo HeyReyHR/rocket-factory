@@ -27,6 +27,7 @@ func (s *service) Create(ctx context.Context, userUuid string, partUuids []strin
 	}
 
 	for _, part := range resp {
+		fmt.Println(part)
 		if part.StockQuantity == 0 {
 			logger.Info(ctx, fmt.Sprintf("Part with uuid %s is out of stock", part.Uuid))
 			return "", 0, model.ErrPartOutOfStock

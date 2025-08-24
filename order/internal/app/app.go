@@ -39,7 +39,33 @@ func New(ctx context.Context) (*App, error) {
 }
 
 func (a *App) Run(ctx context.Context) error {
-	return a.runHTTPServer(ctx)
+	errCh := make(chan error, 2)
+	ctx, cancel := context.WithCancel(ctx)
+
+	defer cancel()
+	go func() {
+		if err := a.runConsumer(ctx); err != nil {
+			errCh <- fmt.Errorf("consumer crashed: %v", err)
+		}
+	}()
+
+	go func() {
+		if err := a.runHTTPServer(ctx); err != nil {
+			errCh <- fmt.Errorf("http server crashed: %v", err)
+		}
+	}()
+
+	select {
+	case <-ctx.Done():
+		logger.Info(ctx, "Shutdown signal received")
+	case err := <-errCh:
+		logger.Error(ctx, "Component crashed, shutting down", zap.Error(err))
+		cancel()
+		<-ctx.Done()
+		return err
+	}
+
+	return nil
 }
 
 func (a *App) initDeps(ctx context.Context) error {
@@ -66,7 +92,7 @@ func (a *App) initDI(_ context.Context) error {
 }
 
 func (a *App) initLogger(_ context.Context) error {
-	return logger.Init( // TODO LOGGER
+	return logger.Init(
 		config.AppConfig().Logger.Level(),
 		config.AppConfig().Logger.AsJson(),
 	)
@@ -87,7 +113,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 
 	r := chi.NewRouter()
 
-	r.Use(middleware.Recoverer)
+	r.Use(middleware.Recoverer, middleware.Logger)
 	r.Use(middleware.Timeout(requestTimeout))
 
 	r.Mount("/", orderServer)
@@ -96,7 +122,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		Addr:              config.AppConfig().OrderHTTP.Address(),
 		Handler:           r,
 		ReadHeaderTimeout: readHeaderTimeout,
-	} // TODO INTERCEPTOR/BETTER ERRORS
+	}
 
 	closer.AddNamed("HTTP server", func(ctx context.Context) error {
 		err = a.httpServer.Shutdown(ctx)
@@ -111,12 +137,23 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) runHTTPServer(ctx context.Context) error { // Ревьюверу: надо ли запускать сервер в отдельной горутине?
+func (a *App) runHTTPServer(ctx context.Context) error {
 	logger.Info(ctx, fmt.Sprintf("🚀 Starting server on %s", config.AppConfig().OrderHTTP.Address()))
 
 	err := a.httpServer.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		logger.Error(ctx, fmt.Sprintf("❌ Error occurred when starting server: %s", err))
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) runConsumer(ctx context.Context) error {
+	logger.Info(ctx, "🚀 ShipAssembled Kafka consumer running")
+
+	err := a.diContainer.ShipConsumerService().RunConsumer(ctx)
+	if err != nil {
 		return err
 	}
 
