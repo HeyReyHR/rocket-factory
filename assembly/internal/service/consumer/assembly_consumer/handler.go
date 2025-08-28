@@ -2,7 +2,6 @@ package assembly_consumer
 
 import (
 	"context"
-	"time"
 
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/kafka"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
@@ -24,7 +23,10 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 		zap.String("transaction_uuid", event.TransactionUuid),
 		zap.String("payment_method", event.PaymentMethod))
 
-	time.Sleep(10 * time.Second)
+	err = s.assemblyService.Assemble(ctx, event) // Creates an event and posts into outbox table
+	if err != nil {
+		return err
+	}
 	
 	return nil
 }

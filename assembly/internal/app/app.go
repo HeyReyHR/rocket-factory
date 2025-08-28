@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/HeyReyHR/rocket-factory/assembly/internal/config"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
@@ -15,7 +16,7 @@ type App struct {
 }
 
 func (a *App) Run(ctx context.Context) error {
-	errCh := make(chan error, 1)
+	errCh := make(chan error, 2)
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -23,6 +24,12 @@ func (a *App) Run(ctx context.Context) error {
 	go func() {
 		if err := a.runConsumer(ctx); err != nil {
 			errCh <- fmt.Errorf("consumer crashed: %v", err)
+		}
+	}()
+
+	go func() {
+		if err := a.runOutboxProcessor(ctx); err != nil {
+			errCh <- fmt.Errorf("outbox processor crashed: %v", err)
 		}
 	}()
 
@@ -87,10 +94,18 @@ func (a *App) initCloser(_ context.Context) error {
 func (a *App) runConsumer(ctx context.Context) error {
 	logger.Info(ctx, "🚀 OrderPaid Kafka consumer running")
 
-	err := a.diContainer.OrderConsumerService().RunConsumer(ctx)
+	err := a.diContainer.OrderConsumerService(ctx).RunConsumer(ctx)
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (a *App) runOutboxProcessor(ctx context.Context) error {
+	logger.Info(ctx, "🚀 OrderAssembled outbox processor running")
+
+	a.diContainer.OrderProducerService(ctx).ProcessAssembledEvents(ctx, time.Duration(1)*time.Second)
 
 	return nil
 }

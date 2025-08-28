@@ -6,47 +6,60 @@ import (
 
 	"github.com/HeyReyHR/rocket-factory/assembly/internal/config"
 	"github.com/HeyReyHR/rocket-factory/assembly/internal/converter/kafka/decoder"
+	"github.com/HeyReyHR/rocket-factory/assembly/internal/repository"
+	assemblyRepository "github.com/HeyReyHR/rocket-factory/assembly/internal/repository/assembly"
 	"github.com/HeyReyHR/rocket-factory/assembly/internal/service"
+	"github.com/HeyReyHR/rocket-factory/assembly/internal/service/assembly"
 	orderConsumer "github.com/HeyReyHR/rocket-factory/assembly/internal/service/consumer/assembly_consumer"
-	shipProducer "github.com/HeyReyHR/rocket-factory/assembly/internal/service/producer/assembly_producer"
+	orderProducer "github.com/HeyReyHR/rocket-factory/assembly/internal/service/producer/assembly_producer"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
 	wrappedKafkaConsumer "github.com/HeyReyHR/rocket-factory/platform/pkg/kafka/consumer"
 	wrappedKafkaProducer "github.com/HeyReyHR/rocket-factory/platform/pkg/kafka/producer"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	kafkaMiddleware "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/kafka"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/migrator"
 	"github.com/IBM/sarama"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
+	"go.uber.org/zap"
 
 	kafkaConverter "github.com/HeyReyHR/rocket-factory/assembly/internal/converter/kafka"
 	wrappedKafka "github.com/HeyReyHR/rocket-factory/platform/pkg/kafka"
 )
 
 type diContainer struct {
-	shipProducerService  service.ShipProducerService
+	assemblyService service.AssemblyService
+
+	orderProducerService service.OrderProducerService
 	orderConsumerService service.ConsumerService
 
 	consumerGroup     sarama.ConsumerGroup
 	orderPaidConsumer wrappedKafka.Consumer
 
-	orderPaidDecoder      kafkaConverter.OrderPaidDecoder
-	syncProducer          sarama.SyncProducer
-	shipAssembledProducer wrappedKafka.Producer
+	orderPaidDecoder       kafkaConverter.OrderPaidDecoder
+	syncProducer           sarama.SyncProducer
+	orderAssembledProducer wrappedKafka.Producer
+
+	assemblyRepository repository.AssemblyRepository
+
+	postgresDBConn *pgx.Conn
 }
 
 func NewDiContainer() *diContainer {
 	return &diContainer{}
 }
 
-func (d *diContainer) ShipAssembledProducerService() service.ShipProducerService {
-	if d.shipProducerService == nil {
-		d.shipProducerService = shipProducer.NewService(d.shipAssembledProducer)
+func (d *diContainer) OrderProducerService(ctx context.Context) service.OrderProducerService {
+	if d.orderProducerService == nil {
+		d.orderProducerService = orderProducer.NewService(d.OrderAssembledProducer(), d.AssemblyRepository(ctx))
 	}
 
-	return d.shipProducerService
+	return d.orderProducerService
 }
 
-func (d *diContainer) OrderConsumerService() service.ConsumerService {
+func (d *diContainer) OrderConsumerService(ctx context.Context) service.ConsumerService {
 	if d.orderConsumerService == nil {
-		d.orderConsumerService = orderConsumer.NewService(d.OrderPaidConsumer(), d.OrderPaidDecoder())
+		d.orderConsumerService = orderConsumer.NewService(d.OrderPaidConsumer(), d.OrderPaidDecoder(), d.AssemblyService(ctx))
 	}
 
 	return d.orderConsumerService
@@ -99,7 +112,7 @@ func (d *diContainer) SyncProducer() sarama.SyncProducer {
 	if d.syncProducer == nil {
 		p, err := sarama.NewSyncProducer(
 			config.AppConfig().Kafka.Brokers(),
-			config.AppConfig().ShipAssembledProducer.Config(),
+			config.AppConfig().OrderAssembledProducer.Config(),
 		)
 		if err != nil {
 			panic(fmt.Sprintf("failed to create sync producer: %s\n", err.Error()))
@@ -114,14 +127,59 @@ func (d *diContainer) SyncProducer() sarama.SyncProducer {
 	return d.syncProducer
 }
 
-func (d *diContainer) ShipAssembledProducer() wrappedKafka.Producer {
-	if d.shipAssembledProducer == nil {
-		d.shipAssembledProducer = wrappedKafkaProducer.NewProducer(
+func (d *diContainer) OrderAssembledProducer() wrappedKafka.Producer {
+	if d.orderAssembledProducer == nil {
+		d.orderAssembledProducer = wrappedKafkaProducer.NewProducer(
 			d.SyncProducer(),
-			config.AppConfig().ShipAssembledProducer.Topic(),
+			config.AppConfig().OrderAssembledProducer.Topic(),
 			logger.Logger(),
 		)
 	}
 
-	return d.shipAssembledProducer
+	return d.orderAssembledProducer
+}
+
+func (d *diContainer) AssemblyService(ctx context.Context) service.AssemblyService {
+	if d.assemblyService == nil {
+		d.assemblyService = assembly.NewService(d.AssemblyRepository(ctx))
+	}
+
+	return d.assemblyService
+}
+
+func (d *diContainer) AssemblyRepository(ctx context.Context) repository.AssemblyRepository {
+	if d.assemblyRepository == nil {
+		d.assemblyRepository = assemblyRepository.NewRepository(d.PostgresDBConn(ctx))
+	}
+
+	return d.assemblyRepository
+}
+
+func (d *diContainer) PostgresDBConn(ctx context.Context) *pgx.Conn {
+	if d.postgresDBConn == nil {
+		dbConn, dbErr := pgx.Connect(ctx, config.AppConfig().Postgres.URI())
+		if dbErr != nil {
+			panic(fmt.Sprintf("❌ failed to connect to Postgres: %s\n", dbErr.Error()))
+		}
+
+		dbErr = dbConn.Ping(ctx)
+		if dbErr != nil {
+			panic(fmt.Sprintf("❌ failed ping database: %s\n", dbErr.Error()))
+		}
+
+		migratorRunner := migrator.NewPgMigrator(stdlib.OpenDB(*dbConn.Config().Copy()), config.AppConfig().Postgres.MigrationsDir())
+		dbErr = migratorRunner.Up()
+		if dbErr != nil {
+			logger.Error(ctx, "❌ failed to run migrations", zap.Error(dbErr))
+			return nil
+		}
+
+		closer.AddNamed("Postgres conn", func(ctx context.Context) error {
+			return dbConn.Close(ctx)
+		})
+
+		d.postgresDBConn = dbConn
+	}
+
+	return d.postgresDBConn
 }

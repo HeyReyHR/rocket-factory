@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE_NAME}
+    container_name: assembly_service_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "${EXTERNAL_POSTGRES_PORT}:5432"
+    volumes:
+      - order_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - microservices-net
+
+volumes:
+  order_data:
+
+networks:
+  microservices-net:
+    external: true

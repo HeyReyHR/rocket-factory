@@ -31,7 +31,7 @@ func NewRepository(db *mongo.Database) *repository {
 	defer cancel()
 
 	_, err := collection.Indexes().CreateMany(ctx, indexModels)
-	err = insertParts(collection)
+	// err = insertParts(collection)
 	if err != nil {
 		panic(err)
 	}

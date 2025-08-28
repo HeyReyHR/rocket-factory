@@ -413,6 +413,20 @@ tasks:
       - echo "[task] 🛑 Останавливаем Order с зависимостями"
       - docker compose down --volumes
 
+  up-assembly:
+    desc: Поднять Assembly сервис и все его зависимости
+    dir: deploy/compose/assembly
+    cmds:
+      - echo "[task] 📦 Поднимаем Assembly с зависимостями"
+      - docker compose up --build --detach
+
+  down-assembly:
+    desc: Остановить и удалить Assembly сервис и все его зависимости
+    dir: deploy/compose/assembly
+    cmds:
+      - echo "[task] 🛑 Останавливаем Assembly с зависимостями"
+      - docker compose down --volumes
+
   up-all:
     desc: Поднять все сервисы по очереди вместе с зависимостями
     cmds:
