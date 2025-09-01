@@ -152,7 +152,7 @@ func (a *App) runHTTPServer(ctx context.Context) error {
 func (a *App) runConsumer(ctx context.Context) error {
 	logger.Info(ctx, "🚀 ShipAssembled Kafka consumer running")
 
-	err := a.diContainer.ShipConsumerService().RunConsumer(ctx)
+	err := a.diContainer.ShipConsumerService(ctx).RunConsumer(ctx)
 	if err != nil {
 		return err
 	}

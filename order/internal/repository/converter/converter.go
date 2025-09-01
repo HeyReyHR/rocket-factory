@@ -82,6 +82,8 @@ func ServiceStatusToRepo(status model.Status) repoModel.Status {
 		return repoModel.CANCELLED
 	case model.PENDING_PAYMENT:
 		return repoModel.PENDING_PAYMENT
+	case model.ASSEMBLED:
+		return repoModel.ASSEMBLED
 	default:
 		return repoModel.UNKNOWN_STATUS
 	}
@@ -95,6 +97,8 @@ func RepoStatusToService(status repoModel.Status) model.Status {
 		return model.CANCELLED
 	case repoModel.PENDING_PAYMENT:
 		return model.PENDING_PAYMENT
+	case repoModel.ASSEMBLED:
+		return model.ASSEMBLED
 	default:
 		return model.UNKNOWN_STATUS
 	}

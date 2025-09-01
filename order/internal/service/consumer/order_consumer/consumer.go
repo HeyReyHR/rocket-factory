@@ -4,6 +4,7 @@ import (
 	"context"
 
 	kafkaConverter "github.com/HeyReyHR/rocket-factory/order/internal/converter/kafka"
+	"github.com/HeyReyHR/rocket-factory/order/internal/repository"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/kafka"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	"go.uber.org/zap"
@@ -12,12 +13,14 @@ import (
 type service struct {
 	shipAssembledConsumer kafka.Consumer
 	shipAssembledDecoder  kafkaConverter.ShipAssembledDecoder
+	repository            repository.OrderRepository
 }
 
-func NewService(shipAssembledConsumer kafka.Consumer, shipAssembledDecoder kafkaConverter.ShipAssembledDecoder) *service {
+func NewService(shipAssembledConsumer kafka.Consumer, shipAssembledDecoder kafkaConverter.ShipAssembledDecoder, repository repository.OrderRepository) *service {
 	return &service{
 		shipAssembledConsumer: shipAssembledConsumer,
 		shipAssembledDecoder:  shipAssembledDecoder,
+		repository:            repository,
 	}
 }
 

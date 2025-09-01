@@ -1,16 +1,18 @@
 package model
 
-type OrderAssembled struct {
-	EventUuid string
-	EventType EventType
-	Payload   OrderAssembledPayload
-	Status    Status
+type OrderPaidEvent struct {
+	EventUuid       string
+	OrderUuid       string
+	UserUuid        string
+	PaymentMethod   string
+	TransactionUuid string
 }
 
-type OrderAssembledPayload struct {
-	OrderUuid    string `json:"order_uuid"`
-	UserUuid     string `json:"user_uuid"`
-	BuildTimeSec int64  `json:"build_time_sec"`
+type OrderAssembledEvent struct {
+	EventUuid    string
+	OrderUuid    string
+	UserUuid     string
+	BuildTimeSec int64
 }
 
 type Status string

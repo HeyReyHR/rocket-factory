@@ -2,6 +2,7 @@ package assembly
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/HeyReyHR/rocket-factory/assembly/internal/model"
@@ -14,7 +15,9 @@ func (r *repository) Get(ctx context.Context) (model.OrderAssembledEvent, error)
 	FROM outbox WHERE status = $1 LIMIT 1`, repoModel.PendingStatus)
 
 	var event repoModel.OrderAssembled
-	err := row.Scan(&event.EventUuid, &event.EventType, &event.Payload, &event.Status)
+
+	var payloadBytes []byte
+	err := row.Scan(&event.EventUuid, &event.EventType, &payloadBytes, &event.Status)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return model.OrderAssembledEvent{}, model.ErrEventNotFound
@@ -22,6 +25,9 @@ func (r *repository) Get(ctx context.Context) (model.OrderAssembledEvent, error)
 		return model.OrderAssembledEvent{}, model.ErrEventScanFailed
 	}
 
+	if err = json.Unmarshal(payloadBytes, &event.Payload); err != nil {
+		return model.OrderAssembledEvent{}, model.ErrEventScanFailed
+	}
 	orderAssembledEvent := model.OrderAssembledEvent{
 		EventUuid:    event.EventUuid,
 		OrderUuid:    event.Payload.OrderUuid,

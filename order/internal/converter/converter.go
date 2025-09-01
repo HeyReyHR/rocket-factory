@@ -62,6 +62,8 @@ func ServiceStatusToRespStatus(status model.Status) orderV1.OrderStatus {
 		return orderV1.OrderStatusPAID
 	case model.CANCELLED:
 		return orderV1.OrderStatusCANCELLED
+	case model.ASSEMBLED:
+		return orderV1.OrderStatusASSEMBLED
 	default:
 		return orderV1.OrderStatusPENDINGPAYMENT
 	}

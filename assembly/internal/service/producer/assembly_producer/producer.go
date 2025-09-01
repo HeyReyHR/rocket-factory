@@ -2,6 +2,7 @@ package assembly_producer
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/HeyReyHR/rocket-factory/assembly/internal/model"
@@ -36,10 +37,9 @@ func (p *service) ProcessAssembledEvents(ctx context.Context, handlePeriod time.
 			}
 			event, err := p.repository.Get(ctx)
 			if err != nil {
-				logger.Error(ctx, "failed to get new event", zap.Error(err))
-				continue
-			}
-			if event.EventUuid == "" { // check if no pending events idk if it works
+				if !errors.Is(err, model.ErrEventNotFound) {
+					logger.Error(ctx, "failed to get new event", zap.Error(err))
+				}
 				continue
 			}
 
@@ -51,12 +51,12 @@ func (p *service) ProcessAssembledEvents(ctx context.Context, handlePeriod time.
 			if err := p.repository.Update(ctx, event.EventUuid); err != nil {
 				logger.Error(ctx, "failed to set event done", zap.Error(err))
 			}
+
 		}
 	}()
 }
 
 func (p *service) ProduceOrderAssembled(ctx context.Context, event model.OrderAssembledEvent) error {
-
 	msg := &eventsV1.ShipAssembled{
 		OrderUuid:    event.OrderUuid,
 		UserUuid:     event.UserUuid,

@@ -2,9 +2,11 @@ package order_consumer
 
 import (
 	"context"
+	"fmt"
 	"strconv"
-	"time"
 
+	"github.com/HeyReyHR/rocket-factory/order/internal/model"
+	"github.com/HeyReyHR/rocket-factory/order/internal/repository/converter"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/kafka"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	"go.uber.org/zap"
@@ -24,7 +26,18 @@ func (s *service) ShipHandler(ctx context.Context, msg kafka.Message) error {
 		zap.String("order_uuid", event.OrderUuid),
 		zap.String("build_time_sec", strconv.FormatInt(event.BuildTimeSec, 10)))
 
-	time.Sleep(10 * time.Second)
+	order, err := s.repository.Get(ctx, event.OrderUuid)
+	if err != nil {
+		logger.Error(ctx, "Failed to get order", zap.Error(err))
+		return err
+	}
+	order.Status = model.ASSEMBLED
+	fmt.Println(order, converter.ServiceOrderToRepoOrder(order))
+	err = s.repository.Update(ctx, order.Uuid, converter.ServiceOrderToRepoOrder(order))
+	if err != nil {
+		logger.Error(ctx, "Failed to update status", zap.Error(err))
+		return err
+	}
 
 	return nil
 }

@@ -2,7 +2,6 @@ package assembly
 
 import (
 	"context"
-	"math/rand"
 	"time"
 
 	"github.com/HeyReyHR/rocket-factory/assembly/internal/model"
@@ -11,7 +10,7 @@ import (
 )
 
 func (s *service) Assemble(ctx context.Context, event model.OrderPaidEvent) error {
-	delay := time.Duration(rand.Intn(10)+1) * time.Second
+	delay := time.Duration(10) * time.Second
 	time.Sleep(delay)
 
 	eventUuid := uuid.NewString()
@@ -20,6 +19,6 @@ func (s *service) Assemble(ctx context.Context, event model.OrderPaidEvent) erro
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }

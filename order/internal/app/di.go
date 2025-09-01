@@ -164,9 +164,9 @@ func (d *diContainer) OrderPaidProducerService() service.OrderProducerService {
 	return d.orderProducerService
 }
 
-func (d *diContainer) ShipConsumerService() service.ShipConsumerService {
+func (d *diContainer) ShipConsumerService(ctx context.Context) service.ShipConsumerService {
 	if d.shipConsumerService == nil {
-		d.shipConsumerService = shipConsumer.NewService(d.ShipConsumer(), d.ShipAssembledDecoder())
+		d.shipConsumerService = shipConsumer.NewService(d.ShipConsumer(), d.ShipAssembledDecoder(), d.OrderRepository(ctx))
 	}
 
 	return d.shipConsumerService
