@@ -80,7 +80,7 @@ func (d *diContainer) OrderAssembledConsumer() wrappedKafka.Consumer {
 		d.orderPaidConsumer = wrappedKafkaConsumer.NewConsumer(
 			d.OrderAssembledConsumerGroup(),
 			[]string{
-				config.AppConfig().OrderPaidConsumer.Topic(),
+				config.AppConfig().OrderAssembledConsumer.Topic(),
 			},
 			logger.Logger(),
 			kafkaMiddleware.Logging(logger.Logger()),
@@ -114,8 +114,8 @@ func (d *diContainer) OrderAssembledConsumerGroup() sarama.ConsumerGroup {
 	if d.orderAssembledConsumerGroup == nil {
 		consumerGroup, err := sarama.NewConsumerGroup(
 			config.AppConfig().Kafka.Brokers(),
-			config.AppConfig().OrderPaidConsumer.GroupID(),
-			config.AppConfig().OrderPaidConsumer.Config(),
+			config.AppConfig().OrderAssembledConsumer.GroupID(),
+			config.AppConfig().OrderAssembledConsumer.Config(),
 		)
 		if err != nil {
 			panic(fmt.Sprintf("failed to create consumer group: %s\n", err.Error()))
