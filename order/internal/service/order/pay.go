@@ -5,6 +5,7 @@ import (
 
 	"github.com/HeyReyHR/rocket-factory/order/internal/model"
 	"github.com/HeyReyHR/rocket-factory/order/internal/repository/converter"
+	gUuid "github.com/google/uuid"
 )
 
 func (s *service) Pay(ctx context.Context, uuid string, paymentMethod model.PaymentMethod) (string, error) {
@@ -34,6 +35,18 @@ func (s *service) Pay(ctx context.Context, uuid string, paymentMethod model.Paym
 	order.Status = model.PAID
 
 	err = s.orderRepository.Update(ctx, uuid, converter.ServiceOrderToRepoOrder(order))
+
+	if err != nil {
+		return "", err
+	}
+
+	err = s.orderProducerService.ProduceOrderPaid(ctx, model.OrderPaidEvent{
+		EventUuid:       gUuid.NewString(),
+		OrderUuid:       uuid,
+		UserUuid:        order.UserUuid,
+		PaymentMethod:   string(paymentMethod),
+		TransactionUuid: transactionUuid,
+	})
 	if err != nil {
 		return "", err
 	}

@@ -40,7 +40,7 @@ func (r *repository) ListParts(ctx context.Context, filter serviceModel.Filter) 
 		}
 	}
 
-	logger.Error(ctx, fmt.Sprintf("MongoDB filter query: %+v", filterQuery))
+	logger.Info(ctx, fmt.Sprintf("MongoDB filter query: %+v", filterQuery))
 
 	cursor, err := r.collection.Find(ctx, filterQuery)
 	if err != nil {
@@ -62,6 +62,6 @@ func (r *repository) ListParts(ctx context.Context, filter serviceModel.Filter) 
 		return nil, err
 	}
 
-	logger.Debug(ctx, fmt.Sprintf("Found %d parts: %v", len(parts), parts))
+	logger.Info(ctx, fmt.Sprintf("Found %d parts: %v", len(parts), parts))
 	return converter.RepoModelsToPartModels(parts), nil
 }

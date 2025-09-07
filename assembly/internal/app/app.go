@@ -1,0 +1,111 @@
+package app
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/HeyReyHR/rocket-factory/assembly/internal/config"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
+	"go.uber.org/zap"
+)
+
+type App struct {
+	diContainer *diContainer
+}
+
+func (a *App) Run(ctx context.Context) error {
+	errCh := make(chan error, 2)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	go func() {
+		if err := a.runConsumer(ctx); err != nil {
+			errCh <- fmt.Errorf("consumer crashed: %v", err)
+		}
+	}()
+
+	go func() {
+		if err := a.runOutboxProcessor(ctx); err != nil {
+			errCh <- fmt.Errorf("outbox processor crashed: %v", err)
+		}
+	}()
+
+	select {
+	case <-ctx.Done():
+		logger.Info(ctx, "Shutdown signal received")
+	case err := <-errCh:
+		logger.Error(ctx, "Component crashed, shutting down", zap.Error(err))
+		cancel()
+		<-ctx.Done()
+		return err
+	}
+
+	return nil
+}
+
+func New(ctx context.Context) (*App, error) {
+	a := &App{}
+
+	err := a.initDeps(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return a, nil
+}
+
+func (a *App) initDeps(ctx context.Context) error {
+	inits := []func(context.Context) error{
+		a.initDI,
+		a.initLogger,
+		a.initCloser,
+	}
+
+	for _, f := range inits {
+		err := f(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (a *App) initDI(_ context.Context) error {
+	a.diContainer = NewDiContainer()
+	return nil
+}
+
+func (a *App) initLogger(_ context.Context) error {
+	return logger.Init(
+		config.AppConfig().Logger.Level(),
+		config.AppConfig().Logger.AsJson(),
+	)
+}
+
+func (a *App) initCloser(_ context.Context) error {
+	closer.SetLogger(logger.Logger())
+	return nil
+}
+
+func (a *App) runConsumer(ctx context.Context) error {
+	logger.Info(ctx, "🚀 OrderPaid Kafka consumer running")
+
+	err := a.diContainer.OrderConsumerService(ctx).RunConsumer(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) runOutboxProcessor(ctx context.Context) error {
+	logger.Info(ctx, "🚀 OrderAssembled outbox processor running")
+
+	a.diContainer.OrderProducerService(ctx).ProcessAssembledEvents(ctx, time.Duration(1)*time.Second)
+
+	return nil
+}

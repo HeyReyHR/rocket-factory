@@ -14,9 +14,9 @@ import (
 	"go.uber.org/zap"
 )
 
-const configPath = "deploy/compose/inventory/.env" // Ревьюверу: как мне избежать этого при коммите?
+// const configPath = "deploy/compose/inventory/.env" // Ревьюверу: как мне избежать этого при коммите?
 
-// const configPath = "/home/heyrey/cool_projects/rocket-factory/deploy/compose/inventory/.env"
+const configPath = "/home/heyrey/cool_projects/rocket-factory/deploy/compose/inventory/.env"
 
 func main() {
 	err := config.Load(configPath)

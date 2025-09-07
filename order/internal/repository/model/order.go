@@ -27,4 +27,5 @@ const (
 	PENDING_PAYMENT Status = "pending_payment"
 	PAID            Status = "paid"
 	CANCELLED       Status = "cancelled"
+	ASSEMBLED       Status = "assembled"
 )
