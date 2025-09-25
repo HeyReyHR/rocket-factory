@@ -3,21 +3,18 @@ package config
 import (
 	"os"
 
-	"github.com/HeyReyHR/rocket-factory/order/internal/config/env"
+	"github.com/HeyReyHR/rocket-factory/iam/internal/config/env"
 	"github.com/joho/godotenv"
 )
 
 var appConfig *config
 
 type config struct {
-	Logger                LoggerConfig
-	OrderHTTP             ServiceConfig
-	Kafka                 KafkaConfig
-	PaymentGRPC           ServiceConfig
-	InventoryGRPC         ServiceConfig
-	Postgres              PostgresConfig
-	OrderPaidProducer     OrderPaidProducerConfig
-	ShipAssembledConsumer ShipAssembledConsumerConfig
+	Logger   LoggerConfig
+	IamGRPC  ServiceConfig
+	Postgres PostgresConfig
+	Redis    RedisConfig
+	Session  SessionConfig
 }
 
 func Load(path ...string) error {
@@ -31,17 +28,7 @@ func Load(path ...string) error {
 		return err
 	}
 
-	orderHTTPCfg, err := env.NewOrderHTTPConfig()
-	if err != nil {
-		return err
-	}
-
-	paymentGRPCCfg, err := env.NewPaymentGRPCConfig()
-	if err != nil {
-		return err
-	}
-
-	inventoryGRPCCfg, err := env.NewInventoryGRPCConfig()
+	iamCfg, err := env.NewIamGRPCConfig()
 	if err != nil {
 		return err
 	}
@@ -51,30 +38,22 @@ func Load(path ...string) error {
 		return err
 	}
 
-	kafkaCfg, err := env.NewKafkaConfig()
+	redisCfg, err := env.NewRedisConfig()
 	if err != nil {
 		return err
 	}
 
-	orderPaidProducerCfg, err := env.NewOrderPaidProducerConfig()
-	if err != nil {
-		return err
-	}
-
-	shipAssembledConsumerCfg, err := env.NewShipAssembledConsumerConfig()
+	sessionCfg, err := env.NewSessionConfig()
 	if err != nil {
 		return err
 	}
 
 	appConfig = &config{
-		Logger:                loggerCfg,
-		OrderHTTP:             orderHTTPCfg,
-		InventoryGRPC:         inventoryGRPCCfg,
-		PaymentGRPC:           paymentGRPCCfg,
-		Postgres:              postgresCfg,
-		Kafka:                 kafkaCfg,
-		OrderPaidProducer:     orderPaidProducerCfg,
-		ShipAssembledConsumer: shipAssembledConsumerCfg,
+		Logger:   loggerCfg,
+		IamGRPC:  iamCfg,
+		Postgres: postgresCfg,
+		Redis:    redisCfg,
+		Session:  sessionCfg,
 	}
 
 	return nil

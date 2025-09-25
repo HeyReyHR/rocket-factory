@@ -51,7 +51,7 @@ type Invoker interface {
 	// Requests an order.
 	//
 	// POST /api/v1/orders
-	PostOrder(ctx context.Context, request *CreateOrderRequest) (PostOrderRes, error)
+	PostOrder(ctx context.Context, request *CreateOrderRequest, params PostOrderParams) (PostOrderRes, error)
 }
 
 // Client implements OAS client.
@@ -381,12 +381,12 @@ func (c *Client) sendPayOrder(ctx context.Context, request *OrderPayRequest, par
 // Requests an order.
 //
 // POST /api/v1/orders
-func (c *Client) PostOrder(ctx context.Context, request *CreateOrderRequest) (PostOrderRes, error) {
-	res, err := c.sendPostOrder(ctx, request)
+func (c *Client) PostOrder(ctx context.Context, request *CreateOrderRequest, params PostOrderParams) (PostOrderRes, error) {
+	res, err := c.sendPostOrder(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendPostOrder(ctx context.Context, request *CreateOrderRequest) (res PostOrderRes, err error) {
+func (c *Client) sendPostOrder(ctx context.Context, request *CreateOrderRequest, params PostOrderParams) (res PostOrderRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("PostOrder"),
 		semconv.HTTPRequestMethodKey.String("POST"),
@@ -433,6 +433,20 @@ func (c *Client) sendPostOrder(ctx context.Context, request *CreateOrderRequest)
 	}
 	if err := encodePostOrderRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
+	}
+
+	stage = "EncodeHeaderParams"
+	h := uri.NewHeaderEncoder(r.Header)
+	{
+		cfg := uri.HeaderParameterEncodingConfig{
+			Name:    "X-Session-UUID",
+			Explode: false,
+		}
+		if err := h.EncodeParam(cfg, func(e uri.Encoder) error {
+			return e.EncodeValue(conv.StringToString(params.XSessionUUID))
+		}); err != nil {
+			return res, errors.Wrap(err, "encode header")
+		}
 	}
 
 	stage = "SendRequest"

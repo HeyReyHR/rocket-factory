@@ -6,23 +6,23 @@ import (
 	"github.com/caarlos0/env/v11"
 )
 
-type inventoryGRPCEnvConfig struct {
-	Host string `env:"INVENTORY_CLIENT_GRPC_HOST,required"`
-	Port string `env:"INVENTORY_CLIENT_GRPC_PORT,required"`
+type iamGRPCEnvConfig struct {
+	Host string `env:"GRPC_HOST,required"`
+	Port string `env:"GRPC_PORT,required"`
 }
 
-type inventoryGRPCConfig struct {
-	raw inventoryGRPCEnvConfig
+type iamGRPCConfig struct {
+	raw iamGRPCEnvConfig
 }
 
-func NewInventoryGRPCConfig() (*inventoryGRPCConfig, error) {
-	var raw inventoryGRPCEnvConfig
+func NewIamGRPCConfig() (*iamGRPCConfig, error) {
+	var raw iamGRPCEnvConfig
 	if err := env.Parse(&raw); err != nil {
 		return nil, err
 	}
-	return &inventoryGRPCConfig{raw: raw}, nil
+	return &iamGRPCConfig{raw: raw}, nil
 }
 
-func (cfg *inventoryGRPCConfig) Address() string {
+func (cfg *iamGRPCConfig) Address() string {
 	return net.JoinHostPort(cfg.raw.Host, cfg.raw.Port)
 }

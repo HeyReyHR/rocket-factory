@@ -1,10 +1,13 @@
 package config
 
-import "github.com/IBM/sarama"
+import "time"
 
 type LoggerConfig interface {
 	Level() string
 	AsJson() bool
+	EnableOTLP() bool
+	OTLPServiceName() string
+	OTLPEnvironment() string
 }
 
 type ServiceConfig interface {
@@ -17,17 +20,13 @@ type PostgresConfig interface {
 	MigrationsDir() string
 }
 
-type OrderPaidProducerConfig interface {
-	Topic() string
-	Config() *sarama.Config
+type RedisConfig interface {
+	Address() string
+	ConnectionTimeout() time.Duration
+	MaxIdle() int
+	IdleTimeout() time.Duration
 }
 
-type ShipAssembledConsumerConfig interface {
-	Topic() string
-	GroupID() string
-	Config() *sarama.Config
-}
-
-type KafkaConfig interface {
-	Brokers() []string
+type SessionConfig interface {
+	SessionTTL() time.Duration
 }

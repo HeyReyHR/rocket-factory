@@ -1,3 +1,10 @@
+parameters:
+  - name: X-Session-UUID
+    in: header
+    description: Session UUID for user context
+    required: true
+    schema:
+      type: string
 post:
   summary: Requests an order
   operationId: PostOrder

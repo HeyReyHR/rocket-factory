@@ -63,9 +63,12 @@ func (a *App) initDI(_ context.Context) error {
 }
 
 func (a *App) initLogger(_ context.Context) error {
-	return logger.Init( // TODO LOGGER
+	return logger.Init(
 		config.AppConfig().Logger.Level(),
 		config.AppConfig().Logger.AsJson(),
+		config.AppConfig().Logger.EnableOTLP(),
+		config.AppConfig().Logger.OTLPEnvironment(),
+		config.AppConfig().Logger.OTLPServiceName(),
 	)
 }
 

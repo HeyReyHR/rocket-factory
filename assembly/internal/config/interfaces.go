@@ -5,6 +5,9 @@ import "github.com/IBM/sarama"
 type LoggerConfig interface {
 	Level() string
 	AsJson() bool
+	EnableOTLP() bool
+	OTLPServiceName() string
+	OTLPEnvironment() string
 }
 
 type KafkaConfig interface {

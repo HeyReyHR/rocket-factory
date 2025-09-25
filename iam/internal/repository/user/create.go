@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (r *repository) Register(ctx context.Context, user model.UserInfo) (string, error) {
+func (r *repository) Create(ctx context.Context, user model.UserInfo, passwordHash string) (string, error) {
 	userUuid := uuid.NewString()
 
 	tx, err := r.dbConn.Begin(ctx)
@@ -30,10 +30,9 @@ func (r *repository) Register(ctx context.Context, user model.UserInfo) (string,
 	if _, err = tx.Exec(ctx, "INSERT INTO users (uuid, created_at, updated_at) VALUES ($1, $2, $3)", userUuid, time.Now(), time.Now()); err != nil {
 		logger.Error(ctx, "insert user failed", zap.Error(err))
 		return "", err
-
 	}
 
-	if _, err = tx.Exec(ctx, "INSERT INTO user_infos (user_uuid, login, email, password_hash) VALUES ($1, $2, $3, $4)", userUuid, user.Login, user.Email, user.PasswordHash); err != nil {
+	if _, err = tx.Exec(ctx, "INSERT INTO user_infos (user_uuid, login, email, password_hash) VALUES ($1, $2, $3, $4)", userUuid, user.Login, user.Email, passwordHash); err != nil {
 		logger.Error(ctx, "insert user failed", zap.Error(err))
 		return "", err
 	}
@@ -56,5 +55,6 @@ func (r *repository) Register(ctx context.Context, user model.UserInfo) (string,
 	}
 
 	committed = true
+	logger.Info(ctx, "user created", zap.String("registered users", userUuid))
 	return userUuid, nil
 }

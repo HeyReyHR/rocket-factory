@@ -2,6 +2,15 @@ package logger
 
 import (
 	"context"
+	"fmt"
+
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
+	otelLog "go.opentelemetry.io/otel/log"
+	otelLogSdk "go.opentelemetry.io/otel/sdk/log"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
+
 	"os"
 	"strings"
 	"sync"
@@ -21,39 +30,29 @@ var (
 	globalLogger *logger
 	initOnce     sync.Once
 	dynamicLevel zap.AtomicLevel
+	otelProvider *otelLogSdk.LoggerProvider
+)
+
+const (
+	otlpEndpoint = "localhost:4317"
 )
 
 type logger struct {
 	zapLogger *zap.Logger
 }
 
-func Init(levelStr string, asJSON bool) error {
+func Init(levelStr string, asJSON bool, enableOTLP bool, serviceName string, serviceEnvironment string) error {
 	initOnce.Do(func() {
 		dynamicLevel = zap.NewAtomicLevelAt(parseLevel(levelStr))
-
-		encoderCfg := buildProductionEncoderConfig()
-
-		var encoder zapcore.Encoder
-
-		if asJSON {
-			encoder = zapcore.NewJSONEncoder(encoderCfg)
-		} else {
-			encoder = zapcore.NewConsoleEncoder(encoderCfg)
-		}
-
-		core := zapcore.NewCore(
-			encoder,
-			zapcore.AddSync(os.Stdout),
-			dynamicLevel,
-		)
-
-		zapLogger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(2))
-
+		cores := buildCores(asJSON, enableOTLP, serviceName, serviceEnvironment)
 		globalLogger = &logger{
-			zapLogger: zapLogger,
+			zapLogger: zap.New(zapcore.NewTee(cores...), zap.AddCaller(), zap.AddCallerSkip(1)),
 		}
-	})
 
+	})
+	if globalLogger == nil {
+		return fmt.Errorf("logger init failed")
+	}
 	return nil
 }
 
@@ -203,4 +202,76 @@ func fieldsFromContext(ctx context.Context) []zap.Field {
 	}
 
 	return fields
+}
+
+func buildCores(asJSON bool, enableOTLP bool, serviceName string, serviceEnvironment string) []zapcore.Core {
+	cores := []zapcore.Core{
+		createStdoutCore(asJSON),
+	}
+
+	if enableOTLP {
+		if otlpCore := createOTLPCore(serviceName, serviceEnvironment); otlpCore != nil {
+			cores = append(cores, otlpCore)
+		}
+	}
+
+	return cores
+}
+
+func createStdoutCore(asJSON bool) zapcore.Core {
+	config := buildProductionEncoderConfig()
+	var encoder zapcore.Encoder
+	if asJSON {
+		encoder = zapcore.NewJSONEncoder(config)
+	} else {
+		encoder = zapcore.NewConsoleEncoder(config)
+	}
+
+	return zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), dynamicLevel)
+}
+
+func createOTLPCore(serviceName string, serviceEnvironment string) *OTLPCore {
+	otlpLogger, err := createOTLPLogger(otlpEndpoint, serviceName, serviceEnvironment)
+	if err != nil {
+		return nil
+	}
+
+	return NewOTLPCore(otlpLogger, dynamicLevel)
+}
+
+func createOTLPLogger(endpoint string, serviceName string, serviceEnvironment string) (otelLog.Logger, error) {
+	ctx := context.Background()
+
+	exporter, err := createOTLPExporter(ctx, endpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	rs, err := createResource(ctx, serviceName, serviceEnvironment)
+	if err != nil {
+		return nil, err
+	}
+
+	provider := otelLogSdk.NewLoggerProvider(
+		otelLogSdk.WithResource(rs),
+		otelLogSdk.WithProcessor(otelLogSdk.NewBatchProcessor(exporter)),
+	)
+	otelProvider = provider // сохраняем для shutdown
+
+	return provider.Logger("app"), nil
+}
+
+func createOTLPExporter(ctx context.Context, endpoint string) (*otlploggrpc.Exporter, error) {
+	return otlploggrpc.New(ctx,
+		otlploggrpc.WithEndpoint(endpoint),
+		otlploggrpc.WithInsecure())
+}
+
+func createResource(ctx context.Context, serviceName string, serviceEnvironment string) (*resource.Resource, error) {
+	return resource.New(ctx,
+		resource.WithAttributes(
+			semconv.ServiceName(serviceName),
+			attribute.String("deployment.environment", serviceEnvironment),
+		),
+	)
 }

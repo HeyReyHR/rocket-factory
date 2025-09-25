@@ -31,7 +31,7 @@ type Handler interface {
 	// Requests an order.
 	//
 	// POST /api/v1/orders
-	PostOrder(ctx context.Context, req *CreateOrderRequest) (PostOrderRes, error)
+	PostOrder(ctx context.Context, req *CreateOrderRequest, params PostOrderParams) (PostOrderRes, error)
 	// NewError creates *GenericErrorStatusCode from error returned by handler.
 	//
 	// Used for common default response.

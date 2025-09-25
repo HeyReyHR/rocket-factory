@@ -8,7 +8,7 @@ import (
 	orderV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/openapi/order/v1"
 )
 
-func (a *api) PostOrder(ctx context.Context, r *orderV1.CreateOrderRequest) (orderV1.PostOrderRes, error) {
+func (a *api) PostOrder(ctx context.Context, r *orderV1.CreateOrderRequest, params orderV1.PostOrderParams) (orderV1.PostOrderRes, error) {
 	uuid, totalPrice, err := a.service.Create(ctx, r.UserUUID, r.PartUuids)
 	if err != nil {
 		switch {

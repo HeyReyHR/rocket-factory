@@ -11,6 +11,7 @@ import (
 	"github.com/HeyReyHR/rocket-factory/order/internal/config"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
+	auth "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/http"
 	orderV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/openapi/order/v1"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -95,6 +96,9 @@ func (a *App) initLogger(_ context.Context) error {
 	return logger.Init(
 		config.AppConfig().Logger.Level(),
 		config.AppConfig().Logger.AsJson(),
+		config.AppConfig().Logger.EnableOTLP(),
+		config.AppConfig().Logger.OTLPEnvironment(),
+		config.AppConfig().Logger.OTLPServiceName(),
 	)
 }
 
@@ -113,6 +117,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 
 	r := chi.NewRouter()
 
+	r.Use(auth.NewAuthMiddleware(a.diContainer.IamClient(ctx)).Handle)
 	r.Use(middleware.Recoverer, middleware.Logger)
 	r.Use(middleware.Timeout(requestTimeout))
 

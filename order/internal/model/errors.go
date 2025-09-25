@@ -15,4 +15,5 @@ var (
 	ErrPartsNotFound       = sharedErrors.NewNotFoundError(errors.New("some parts not found"))
 	ErrPartOutOfStock      = sharedErrors.NewInvalidArgumentError(errors.New("part out of stock"))
 	ErrOrderScanFailed     = sharedErrors.NewInvalidArgumentError(errors.New("order scan failed"))
+	ErrAuthFailed          = sharedErrors.NewInvalidArgumentError(errors.New("auth failed"))
 )

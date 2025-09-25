@@ -5,16 +5,23 @@ import (
 	"fmt"
 
 	invV1API "github.com/HeyReyHR/rocket-factory/inventory/internal/api/inventory/v1"
+	client "github.com/HeyReyHR/rocket-factory/inventory/internal/client/grpc"
+	iamClientV1 "github.com/HeyReyHR/rocket-factory/inventory/internal/client/grpc/iam/v1"
 	"github.com/HeyReyHR/rocket-factory/inventory/internal/config"
 	"github.com/HeyReyHR/rocket-factory/inventory/internal/repository"
 	inventoryRepository "github.com/HeyReyHR/rocket-factory/inventory/internal/repository/inventory"
 	"github.com/HeyReyHR/rocket-factory/inventory/internal/service"
 	inventoryService "github.com/HeyReyHR/rocket-factory/inventory/internal/service/inventory"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
+	authV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/auth/v1"
 	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type diContainer struct {
@@ -26,6 +33,8 @@ type diContainer struct {
 
 	mongoDBClient *mongo.Client
 	mongoDBHandle *mongo.Database
+
+	iamClient client.IamClient
 }
 
 func NewDiContainer() *diContainer {
@@ -85,4 +94,24 @@ func (d *diContainer) MongoDBHandle(ctx context.Context) *mongo.Database {
 	}
 
 	return d.mongoDBHandle
+}
+
+func (d *diContainer) IamClient(ctx context.Context) client.IamClient {
+	if d.iamClient == nil {
+		connIam, err := grpc.NewClient(
+			config.AppConfig().IamClient.Address(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			logger.Error(ctx, "❌ failed to connect to iam service", zap.Error(err))
+			return nil
+		}
+
+		iam := authV1.NewAuthServiceClient(connIam)
+
+		d.iamClient = iamClientV1.NewAuthClient(iam)
+		closer.AddNamed("Iam gRPC client", func(ctx context.Context) error {
+			return connIam.Close()
+		})
+	}
+	return d.iamClient
 }

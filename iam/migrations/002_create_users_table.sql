@@ -1,18 +1,19 @@
 -- +goose Up
 CREATE TABLE users (
     uuid UUID PRIMARY KEY,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE user_infos (
-    user_uuid UUID PRIMARY KEY NOT NULL REFERENCES users(uuid) ON DELETE CASCADE,
-    login TEXT NOT NULL,
-    email TEXT NOT NULL
+    user_uuid UUID PRIMARY KEY REFERENCES users(uuid) ON DELETE CASCADE,
+    login TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL
 );
 
 CREATE TABLE notification_methods (
-    user_uuid PRIMARY KEY NOT NULL REFERENCES users(uuid) ON DELETE CASCADE,
+    user_infos_uuid UUID PRIMARY KEY NOT NULL REFERENCES user_infos(user_uuid) ON DELETE CASCADE,
     provider_name TEXT NOT NULL,
     target TEXT NOT NULL
 );

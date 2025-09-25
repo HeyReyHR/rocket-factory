@@ -45,7 +45,7 @@ func (UnimplementedHandler) PayOrder(ctx context.Context, req *OrderPayRequest, 
 // Requests an order.
 //
 // POST /api/v1/orders
-func (UnimplementedHandler) PostOrder(ctx context.Context, req *CreateOrderRequest) (r PostOrderRes, _ error) {
+func (UnimplementedHandler) PostOrder(ctx context.Context, req *CreateOrderRequest, params PostOrderParams) (r PostOrderRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
