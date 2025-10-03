@@ -14,7 +14,7 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 		logger.Error(ctx, "Failed to decode OrderPaid", zap.Error(err))
 		return err
 	}
-	
+
 	if err = s.telegramService.SendOrderPaidNotification(ctx, event); err != nil {
 		logger.Error(ctx, "Failed to send notification", zap.Error(err))
 	}

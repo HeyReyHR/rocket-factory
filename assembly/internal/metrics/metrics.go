@@ -11,9 +11,7 @@ const (
 
 var meter = otel.Meter(serviceName)
 
-var (
-	AssembleDuration metric.Float64Histogram
-)
+var AssembleDuration metric.Float64Histogram
 
 func InitMetrics() error {
 	var err error
@@ -28,5 +26,4 @@ func InitMetrics() error {
 	}
 
 	return nil
-
 }

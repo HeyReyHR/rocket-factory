@@ -2,7 +2,6 @@ package inventory
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	def "github.com/HeyReyHR/rocket-factory/inventory/internal/repository"
@@ -373,11 +372,10 @@ func insertParts(collection *mongo.Collection) error {
 		},
 	}
 	for _, part := range parts {
-		res, err := collection.InsertOne(ctx, part)
+		_, err := collection.InsertOne(ctx, part)
 		if err != nil {
 			return err
 		}
-		fmt.Println(res.InsertedID)
 	}
 	return nil
 }

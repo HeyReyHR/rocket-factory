@@ -19,12 +19,11 @@ import (
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/migrator"
 	authV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/auth/v1"
+	userV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/user/v1"
 	redigo "github.com/gomodule/redigo/redis"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
 	"go.uber.org/zap"
-
-	userV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/user/v1"
 )
 
 type diContainer struct {

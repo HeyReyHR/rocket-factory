@@ -3,6 +3,9 @@ package logger
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
+	"sync"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
@@ -10,11 +13,6 @@ import (
 	otelLogSdk "go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
-
-	"os"
-	"strings"
-	"sync"
-
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -41,14 +39,13 @@ type logger struct {
 	zapLogger *zap.Logger
 }
 
-func Init(levelStr string, asJSON bool, enableOTLP bool, serviceName string, serviceEnvironment string) error {
+func Init(levelStr string, asJSON, enableOTLP bool, serviceName, serviceEnvironment string) error {
 	initOnce.Do(func() {
 		dynamicLevel = zap.NewAtomicLevelAt(parseLevel(levelStr))
 		cores := buildCores(asJSON, enableOTLP, serviceName, serviceEnvironment)
 		globalLogger = &logger{
 			zapLogger: zap.New(zapcore.NewTee(cores...), zap.AddCaller(), zap.AddCallerSkip(1)),
 		}
-
 	})
 	if globalLogger == nil {
 		return fmt.Errorf("logger init failed")
@@ -204,7 +201,7 @@ func fieldsFromContext(ctx context.Context) []zap.Field {
 	return fields
 }
 
-func buildCores(asJSON bool, enableOTLP bool, serviceName string, serviceEnvironment string) []zapcore.Core {
+func buildCores(asJSON, enableOTLP bool, serviceName, serviceEnvironment string) []zapcore.Core {
 	cores := []zapcore.Core{
 		createStdoutCore(asJSON),
 	}
@@ -230,7 +227,7 @@ func createStdoutCore(asJSON bool) zapcore.Core {
 	return zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), dynamicLevel)
 }
 
-func createOTLPCore(serviceName string, serviceEnvironment string) *OTLPCore {
+func createOTLPCore(serviceName, serviceEnvironment string) *OTLPCore {
 	otlpLogger, err := createOTLPLogger(otlpEndpoint, serviceName, serviceEnvironment)
 	if err != nil {
 		return nil
@@ -239,7 +236,7 @@ func createOTLPCore(serviceName string, serviceEnvironment string) *OTLPCore {
 	return NewOTLPCore(otlpLogger, dynamicLevel)
 }
 
-func createOTLPLogger(endpoint string, serviceName string, serviceEnvironment string) (otelLog.Logger, error) {
+func createOTLPLogger(endpoint, serviceName, serviceEnvironment string) (otelLog.Logger, error) {
 	ctx := context.Background()
 
 	exporter, err := createOTLPExporter(ctx, endpoint)
@@ -267,7 +264,7 @@ func createOTLPExporter(ctx context.Context, endpoint string) (*otlploggrpc.Expo
 		otlploggrpc.WithInsecure())
 }
 
-func createResource(ctx context.Context, serviceName string, serviceEnvironment string) (*resource.Resource, error) {
+func createResource(ctx context.Context, serviceName, serviceEnvironment string) (*resource.Resource, error) {
 	return resource.New(ctx,
 		resource.WithAttributes(
 			semconv.ServiceName(serviceName),

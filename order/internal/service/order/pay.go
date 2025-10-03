@@ -36,7 +36,6 @@ func (s *service) Pay(ctx context.Context, uuid string, paymentMethod model.Paym
 	order.Status = model.PAID
 
 	err = s.orderRepository.Update(ctx, uuid, converter.ServiceOrderToRepoOrder(order))
-
 	if err != nil {
 		return "", err
 	}

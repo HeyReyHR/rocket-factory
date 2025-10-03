@@ -37,6 +37,8 @@ var _ = Describe("OrderService", func() {
 			resp, err := orderClient.PostOrder(ctx, &orderV1.CreateOrderRequest{
 				UserUUID:  "1",
 				PartUuids: []string{partUuid},
+			}, orderV1.PostOrderParams{
+				XSessionUUID: "",
 			})
 			Expect(err).ToNot(HaveOccurred())
 
@@ -56,6 +58,8 @@ var _ = Describe("OrderService", func() {
 			resp, err := orderClient.PostOrder(ctx, &orderV1.CreateOrderRequest{
 				UserUUID:  "1",
 				PartUuids: []string{partUuidOutOfStock},
+			}, orderV1.PostOrderParams{
+				XSessionUUID: "",
 			})
 			Expect(err).ToNot(HaveOccurred())
 
@@ -69,6 +73,8 @@ var _ = Describe("OrderService", func() {
 			resp, err := orderClient.PostOrder(ctx, &orderV1.CreateOrderRequest{
 				UserUUID:  "1",
 				PartUuids: []string{"-"},
+			}, orderV1.PostOrderParams{
+				XSessionUUID: "",
 			})
 			Expect(err).ToNot(HaveOccurred())
 
@@ -143,7 +149,7 @@ var _ = Describe("OrderService", func() {
 			})
 			Expect(err).ToNot(HaveOccurred())
 			if badReqResp, ok := resp.(*orderV1.BadRequestError); ok {
-				Expect(badReqResp.Code).To(Equal(400)) // TODO MESSAGE INSTEAD OF CODE
+				Expect(badReqResp.Code).To(Equal(400))
 			} else {
 				Fail(fmt.Sprintf("Response body is not proper and doesnt contain expected error: %v", resp))
 			}

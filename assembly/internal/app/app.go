@@ -25,13 +25,13 @@ func (a *App) Run(ctx context.Context) error {
 
 	go func() {
 		if err := a.runConsumer(ctx); err != nil {
-			errCh <- fmt.Errorf("consumer crashed: %v", err)
+			errCh <- fmt.Errorf("consumer crashed: %w", err)
 		}
 	}()
 
 	go func() {
 		if err := a.runOutboxProcessor(ctx); err != nil {
-			errCh <- fmt.Errorf("outbox processor crashed: %v", err)
+			errCh <- fmt.Errorf("outbox processor crashed: %w", err)
 		}
 	}()
 

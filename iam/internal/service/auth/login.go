@@ -10,8 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *service) Login(ctx context.Context, login string, password string) (string, error) {
-
+func (s *service) Login(ctx context.Context, login, password string) (string, error) {
 	user, err := s.userRepository.GetWithLogin(ctx, login)
 	if err != nil {
 		return "", err

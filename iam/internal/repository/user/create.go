@@ -18,7 +18,9 @@ func (r *repository) Create(ctx context.Context, user model.AdditionalInfo, pass
 	committed := false
 	defer func() {
 		if !committed {
-			_ = tx.Rollback(ctx)
+			if err = tx.Rollback(ctx); err != nil {
+				logger.Error(ctx, "failed to rollback", zap.Error(err))
+			}
 		}
 	}()
 
@@ -50,7 +52,10 @@ func (r *repository) Create(ctx context.Context, user model.AdditionalInfo, pass
 
 	if err = tx.Commit(ctx); err != nil {
 		logger.Error(ctx, "commit tx failed", zap.Error(err))
-		_ = tx.Rollback(ctx)
+		err = tx.Rollback(ctx)
+		if err != nil {
+			return "", err
+		}
 		return "", err
 	}
 

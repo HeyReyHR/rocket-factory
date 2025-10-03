@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"embed"
-	"fmt"
 	"text/template"
 	"time"
 
@@ -77,7 +76,6 @@ func (s *service) SendOrderAssembledNotification(ctx context.Context, order mode
 }
 
 func (s *service) buildOrderPaidMessage(order model.OrderPaidEvent) (string, error) {
-	fmt.Println(order.PaymentMethod)
 	data := orderPaidTemplateData{
 		OrderUuid:       order.OrderUuid,
 		UserUuid:        order.UserUuid,

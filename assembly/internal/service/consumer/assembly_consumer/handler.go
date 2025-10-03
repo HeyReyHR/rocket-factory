@@ -27,6 +27,6 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }

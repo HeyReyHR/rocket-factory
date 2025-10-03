@@ -30,7 +30,7 @@ func TestIntegration(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	err := logger.Init(loggerLevelValue, true)
+	err := logger.Init(loggerLevelValue, true, false, "", "")
 	if err != nil {
 		panic(fmt.Sprintf("Cannot init logger: %v", err))
 	}

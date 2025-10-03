@@ -35,5 +35,4 @@ func InitMetrics() error {
 	}
 
 	return nil
-
 }

@@ -47,7 +47,6 @@ func (r *repository) GetWithLogin(ctx context.Context, login string) (model.User
 		&dto.PasswordHash,
 		&dto.NotificationMethods,
 	)
-
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return model.User{}, serviceModel.ErrUserNotFound

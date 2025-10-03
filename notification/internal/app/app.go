@@ -24,13 +24,13 @@ func (a *App) Run(ctx context.Context) error {
 
 	go func() {
 		if err := a.runOrderPaidConsumer(ctx); err != nil {
-			errCh <- fmt.Errorf("orderPaid consumer crashed: %v", err)
+			errCh <- fmt.Errorf("orderPaid consumer crashed: %w", err)
 		}
 	}()
 
 	go func() {
 		if err := a.runOrderAssembledConsumer(ctx); err != nil {
-			errCh <- fmt.Errorf("orderAssembled consumer crashed: %v", err)
+			errCh <- fmt.Errorf("orderAssembled consumer crashed: %w", err)
 		}
 	}()
 

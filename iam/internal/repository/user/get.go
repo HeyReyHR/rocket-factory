@@ -45,7 +45,6 @@ func (r *repository) Get(ctx context.Context, uuid string) (model.User, error) {
 		&dto.PasswordHash,
 		&dto.NotificationMethods,
 	)
-
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return model.User{}, serviceModel.ErrUserNotFound

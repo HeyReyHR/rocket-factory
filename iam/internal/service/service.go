@@ -12,6 +12,6 @@ type UserService interface {
 }
 
 type AuthService interface {
-	Login(ctx context.Context, login string, password string) (string, error)
+	Login(ctx context.Context, login, password string) (string, error)
 	WhoAmI(ctx context.Context, sessionUuid string) (model.User, model.Session, error)
 }

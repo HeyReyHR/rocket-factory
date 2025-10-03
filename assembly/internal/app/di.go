@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/HeyReyHR/rocket-factory/assembly/internal/config"
+	kafkaConverter "github.com/HeyReyHR/rocket-factory/assembly/internal/converter/kafka"
 	"github.com/HeyReyHR/rocket-factory/assembly/internal/converter/kafka/decoder"
 	"github.com/HeyReyHR/rocket-factory/assembly/internal/repository"
 	assemblyRepository "github.com/HeyReyHR/rocket-factory/assembly/internal/repository/assembly"
@@ -13,6 +14,7 @@ import (
 	orderConsumer "github.com/HeyReyHR/rocket-factory/assembly/internal/service/consumer/assembly_consumer"
 	orderProducer "github.com/HeyReyHR/rocket-factory/assembly/internal/service/producer/assembly_producer"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
+	wrappedKafka "github.com/HeyReyHR/rocket-factory/platform/pkg/kafka"
 	wrappedKafkaConsumer "github.com/HeyReyHR/rocket-factory/platform/pkg/kafka/consumer"
 	wrappedKafkaProducer "github.com/HeyReyHR/rocket-factory/platform/pkg/kafka/producer"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
@@ -22,9 +24,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
 	"go.uber.org/zap"
-
-	kafkaConverter "github.com/HeyReyHR/rocket-factory/assembly/internal/converter/kafka"
-	wrappedKafka "github.com/HeyReyHR/rocket-factory/platform/pkg/kafka"
 )
 
 type diContainer struct {
