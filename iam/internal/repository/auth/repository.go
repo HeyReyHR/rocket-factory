@@ -2,7 +2,6 @@ package auth
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/cache"
 )
@@ -13,14 +12,12 @@ const (
 )
 
 type repository struct {
-	cache      cache.RedisClient
-	sessionTtl time.Duration
+	cache cache.RedisClient
 }
 
-func NewRepository(cache cache.RedisClient, sessionTtl time.Duration) *repository {
+func NewRepository(cache cache.RedisClient) *repository {
 	return &repository{
-		cache:      cache,
-		sessionTtl: sessionTtl,
+		cache: cache,
 	}
 }
 

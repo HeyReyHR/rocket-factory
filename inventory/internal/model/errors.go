@@ -7,3 +7,4 @@ import (
 )
 
 var ErrPartNotFound = sharedErrors.NewNotFoundError(errors.New("part not found"))
+var ErrUnauthenticated = sharedErrors.NewUnauthenticatedError(errors.New("user not authenticated"))

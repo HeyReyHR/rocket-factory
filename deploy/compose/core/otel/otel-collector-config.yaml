@@ -90,6 +90,10 @@ processors:
 
 exporters:
 
+  prometheusremotewrite:
+    # URL endpoint Prometheus для приема метрик
+    # Prometheus автоматически предоставляет этот endpoint
+    endpoint: http://prometheus:9090/api/v1/write
   # ELASTICSEARCH EXPORTER - отправка логов в Elasticsearch
   elasticsearch:
 
@@ -185,6 +189,11 @@ service:
       receivers: [otlp]                    # принимаем от OTLP gRPC
       processors: [resource, batch]       # обогащаем метаданными, группируем в батчи
       exporters: [elasticsearch]          # отправляем в Elasticsearch
+
+    metrics:
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ prometheusremotewrite ]
 
       # FLOW ДИАГРАММА:
       # Go App (OTLP gRPC)

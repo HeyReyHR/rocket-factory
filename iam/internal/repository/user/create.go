@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (r *repository) Create(ctx context.Context, user model.UserInfo, passwordHash string) (string, error) {
+func (r *repository) Create(ctx context.Context, user model.AdditionalInfo, passwordHash string) (string, error) {
 	userUuid := uuid.NewString()
 
 	tx, err := r.dbConn.Begin(ctx)

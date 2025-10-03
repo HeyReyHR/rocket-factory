@@ -7,7 +7,7 @@ import (
 )
 
 type UserService interface {
-	Register(ctx context.Context, info model.UserInfo, password string) (string, error)
+	Register(ctx context.Context, info model.AdditionalInfo, password string) (string, error)
 	User(ctx context.Context, uuid string) (model.User, error)
 }
 

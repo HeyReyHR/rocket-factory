@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/HeyReyHR/rocket-factory/inventory/internal/converter"
+
 	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
 )
 

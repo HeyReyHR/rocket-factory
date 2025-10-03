@@ -635,3 +635,33 @@ func (s *PaymentMethod) UnmarshalText(data []byte) error {
 		return errors.Errorf("invalid value: %q", data)
 	}
 }
+
+// Ref: #/components/schemas/unauthorized_error
+type UnauthorizedError struct {
+	// HTTP error code.
+	Code int `json:"code"`
+	// Error description.
+	Message string `json:"message"`
+}
+
+// GetCode returns the value of Code.
+func (s *UnauthorizedError) GetCode() int {
+	return s.Code
+}
+
+// GetMessage returns the value of Message.
+func (s *UnauthorizedError) GetMessage() string {
+	return s.Message
+}
+
+// SetCode sets the value of Code.
+func (s *UnauthorizedError) SetCode(val int) {
+	s.Code = val
+}
+
+// SetMessage sets the value of Message.
+func (s *UnauthorizedError) SetMessage(val string) {
+	s.Message = val
+}
+
+func (*UnauthorizedError) postOrderRes() {}

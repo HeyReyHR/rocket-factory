@@ -1,4 +1,4 @@
-package converter
+package password
 
 import (
 	"crypto/rand"

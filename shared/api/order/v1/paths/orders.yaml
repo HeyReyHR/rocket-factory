@@ -29,6 +29,12 @@ post:
         application/json:
           schema:
             $ref: "../components/errors/bad_request_error.yaml"
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/unauthorized_error.yaml"
     '500':
       description: Internal server error
       content:

@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/HeyReyHR/rocket-factory/assembly/internal/config"
+	metricsAssembly "github.com/HeyReyHR/rocket-factory/assembly/internal/metrics"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/metrics"
 	"go.uber.org/zap"
 )
 
@@ -62,6 +64,8 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initDI,
 		a.initLogger,
 		a.initCloser,
+		a.initMetricsProvider,
+		a.initMetrics,
 	}
 
 	for _, f := range inits {
@@ -87,6 +91,14 @@ func (a *App) initLogger(_ context.Context) error {
 		config.AppConfig().Logger.OTLPEnvironment(),
 		config.AppConfig().Logger.OTLPServiceName(),
 	)
+}
+
+func (a *App) initMetricsProvider(ctx context.Context) error {
+	return metrics.InitProvider(ctx, config.AppConfig().Metrics)
+}
+
+func (a *App) initMetrics(_ context.Context) error {
+	return metricsAssembly.InitMetrics()
 }
 
 func (a *App) initCloser(_ context.Context) error {

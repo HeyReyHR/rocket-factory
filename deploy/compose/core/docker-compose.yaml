@@ -314,7 +314,7 @@ services: # Раздел, в котором описываются все кон
       volumes:
         # МОНТИРОВАНИЕ КОНФИГУРАЦИИ: подключаем локальный файл в контейнер
         # Изменения в otel-collector-config.yaml требуют перезапуска контейнера
-        - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+        - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml
 
       ports:
         # ПОРТ 8888: метрики самого коллектора (Prometheus формат)

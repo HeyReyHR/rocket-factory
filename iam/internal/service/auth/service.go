@@ -9,21 +9,16 @@ import (
 
 var _ service2.AuthService = (*service)(nil)
 
-const (
-	accessTokenSecret  = "access-secret-key-very-long-and-secure"
-	refreshTokenSecret = "refresh-secret-key-very-long-and-secure"
-	accessTokenTTL     = 15 * time.Minute
-	refreshTokenTTL    = 24 * time.Hour
-)
-
 type service struct {
 	repository     repository.AuthRepository
 	userRepository repository.UserRepository
+	sessionTtl     time.Duration
 }
 
-func NewService(repository repository.AuthRepository, userRepository repository.UserRepository) *service {
+func NewService(repository repository.AuthRepository, userRepository repository.UserRepository, sessionTtl time.Duration) *service {
 	return &service{
 		repository:     repository,
 		userRepository: userRepository,
+		sessionTtl:     sessionTtl,
 	}
 }

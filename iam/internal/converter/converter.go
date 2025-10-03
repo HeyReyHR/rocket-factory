@@ -7,8 +7,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func ConvertUserInfoServiceToRepo(info model.UserInfo) repoModel.UserInfo {
-	return repoModel.UserInfo{
+func ConvertUserInfoServiceToRepo(info model.AdditionalInfo) repoModel.AdditionalInfo {
+	return repoModel.AdditionalInfo{
 		Email:               info.Email,
 		Login:               info.Login,
 		NotificationMethods: ConvertNotificationMethodsServiceToRepo(info.NotificationMethods),
@@ -30,13 +30,13 @@ func ConvertNotificationMethodsServiceToRepo(methods []model.NotificationMethod)
 func ConvertUserServiceToApi(user model.User) *commonV1.User {
 	return &commonV1.User{
 		Uuid:      user.Uuid,
-		Info:      ConvertUserInfoServiceToApi(user.UserInfo),
+		Info:      ConvertUserInfoServiceToApi(user.AdditionalInfo),
 		CreatedAt: timestamppb.New(user.CreatedAt),
 		UpdatedAt: timestamppb.New(user.UpdatedAt),
 	}
 }
 
-func ConvertUserInfoServiceToApi(info model.UserInfo) *commonV1.UserInfo {
+func ConvertUserInfoServiceToApi(info model.AdditionalInfo) *commonV1.UserInfo {
 	return &commonV1.UserInfo{
 		Login:               info.Login,
 		Email:               info.Email,
@@ -65,8 +65,8 @@ func ConvertSessionServiceToApi(session model.Session) *commonV1.Session {
 	}
 }
 
-func ConvertUserInfoApiToService(info *commonV1.UserInfo) model.UserInfo {
-	return model.UserInfo{
+func ConvertUserInfoApiToService(info *commonV1.UserInfo) model.AdditionalInfo {
+	return model.AdditionalInfo{
 		Login:               info.GetLogin(),
 		Email:               info.GetEmail(),
 		NotificationMethods: ConvertNotificationMethodsApiToService(info.GetNotificationMethods()),

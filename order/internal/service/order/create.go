@@ -4,26 +4,18 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/HeyReyHR/rocket-factory/order/internal/metrics"
 	"github.com/HeyReyHR/rocket-factory/order/internal/model"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
-	authGrpc "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/grpc"
-	auth "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/http"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
 func (s *service) Create(ctx context.Context, userUuid string, partUuids []string) (string, float64, error) {
-	_, ok := auth.GetSessionUUIDFromContext(ctx)
-	if !ok {
-		return "", 0, model.ErrAuthFailed
-	}
-
 	timeoutCtx, cancel := context.WithTimeout(ctx, model.RequestTimeout)
 	defer cancel()
 
-	grpcCtx := authGrpc.ForwardSessionUUIDToGRPC(timeoutCtx)
-
-	resp, err := s.inventory.ListParts(grpcCtx, model.PartsFilter{
+	resp, err := s.inventory.ListParts(timeoutCtx, model.PartsFilter{
 		Uuids: partUuids,
 	})
 	if err != nil {
@@ -54,5 +46,8 @@ func (s *service) Create(ctx context.Context, userUuid string, partUuids []strin
 	if err != nil {
 		return "", 0, err
 	}
+
+	metrics.OrdersTotal.Add(ctx, 1)
+
 	return newUuid, totalPrice, nil
 }

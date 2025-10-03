@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 
+	"github.com/HeyReyHR/rocket-factory/order/internal/metrics"
 	"github.com/HeyReyHR/rocket-factory/order/internal/model"
 	"github.com/HeyReyHR/rocket-factory/order/internal/repository/converter"
 	gUuid "github.com/google/uuid"
@@ -39,6 +40,8 @@ func (s *service) Pay(ctx context.Context, uuid string, paymentMethod model.Paym
 	if err != nil {
 		return "", err
 	}
+
+	metrics.OrdersRevenueTotal.Add(ctx, order.TotalPrice)
 
 	err = s.orderProducerService.ProduceOrderPaid(ctx, model.OrderPaidEvent{
 		EventUuid:       gUuid.NewString(),

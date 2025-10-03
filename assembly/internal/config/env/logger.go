@@ -30,3 +30,15 @@ func (cfg *loggerConfig) Level() string {
 func (cfg *loggerConfig) AsJson() bool {
 	return cfg.raw.AsJson
 }
+
+func (cfg *loggerConfig) EnableOTLP() bool {
+	return cfg.raw.EnableOTLP
+}
+
+func (cfg *loggerConfig) OTLPServiceName() string {
+	return cfg.raw.OTLPServiceName
+}
+
+func (cfg *loggerConfig) OTLPEnvironment() string {
+	return cfg.raw.OTLPEnvironment
+}

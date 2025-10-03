@@ -5,14 +5,15 @@ import (
 
 	"github.com/HeyReyHR/rocket-factory/iam/internal/converter"
 	"github.com/HeyReyHR/rocket-factory/iam/internal/model"
+	passwordManage "github.com/HeyReyHR/rocket-factory/iam/internal/utils/password"
 )
 
-func (s *service) Register(ctx context.Context, user model.UserInfo, password string) (string, error) {
+func (s *service) Register(ctx context.Context, user model.AdditionalInfo, password string) (string, error) {
 	if user.Email == "" || user.Login == "" {
 		return "", model.ErrUserInvalidRegisterReq
 	}
 
-	passwordHash, err := converter.HashArgon2id(password)
+	passwordHash, err := passwordManage.HashArgon2id(password)
 	if err != nil {
 		return "", err
 	}

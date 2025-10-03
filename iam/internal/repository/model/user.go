@@ -1,15 +1,17 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type User struct {
-	Uuid      string `json:"uuid"`
-	UserInfo  `json:"user_info"`
-	UpdatedAt time.Time `json:"updated_at"`
-	CreatedAt time.Time `json:"created_at"`
+	Uuid           string             `json:"uuid"`
+	AdditionalInfo `json:"user_info"` // going to keep in mind that
+	UpdatedAt      time.Time          `json:"updated_at"`
+	CreatedAt      time.Time          `json:"created_at"`
 }
 
-type UserInfo struct {
+type AdditionalInfo struct {
 	Login               string               `json:"login"`
 	Email               string               `json:"email"`
 	PasswordHash        string               `json:"password_hash"`
@@ -26,4 +28,16 @@ type Session struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	ExpiresAt time.Time `json:"expires_at "`
+}
+
+type UserDbDto struct {
+	Uuid      string    `db:"uuid"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+
+	Login        string `db:"login"`
+	Email        string `db:"email"`
+	PasswordHash string `db:"password_hash"`
+
+	NotificationMethods []string `db:"notification_methods"`
 }

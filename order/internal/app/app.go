@@ -9,8 +9,10 @@ import (
 
 	"github.com/HeyReyHR/rocket-factory/order/internal/api/health"
 	"github.com/HeyReyHR/rocket-factory/order/internal/config"
+	orderMetrics "github.com/HeyReyHR/rocket-factory/order/internal/metrics"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/metrics"
 	auth "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/http"
 	orderV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/openapi/order/v1"
 	"github.com/go-chi/chi/v5"
@@ -74,6 +76,8 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initDI,
 		a.initLogger,
 		a.initCloser,
+		a.initMetricsProvider,
+		a.initMetrics,
 		a.initHTTPServer,
 	}
 
@@ -100,6 +104,14 @@ func (a *App) initLogger(_ context.Context) error {
 		config.AppConfig().Logger.OTLPEnvironment(),
 		config.AppConfig().Logger.OTLPServiceName(),
 	)
+}
+
+func (a *App) initMetricsProvider(ctx context.Context) error {
+	return metrics.InitProvider(ctx, config.AppConfig().Metrics)
+}
+
+func (a *App) initMetrics(_ context.Context) error {
+	return orderMetrics.InitMetrics()
 }
 
 func (a *App) initCloser(_ context.Context) error {
