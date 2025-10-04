@@ -2,6 +2,7 @@ package order
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/HeyReyHR/rocket-factory/order/internal/metrics"
 	"github.com/HeyReyHR/rocket-factory/order/internal/model"
@@ -11,6 +12,7 @@ import (
 
 func (s *service) Pay(ctx context.Context, uuid string, paymentMethod model.PaymentMethod) (string, error) {
 	order, err := s.orderRepository.Get(ctx, uuid)
+	fmt.Println(order)
 	if err != nil {
 		return "", model.ErrOrderNotFound
 	}
@@ -19,6 +21,8 @@ func (s *service) Pay(ctx context.Context, uuid string, paymentMethod model.Paym
 		return "", model.ErrAlreadyPaid
 	case model.CANCELLED:
 		return "", model.ErrOrderCancelled
+	case model.ASSEMBLED:
+		return "", model.ErrOrderAlreadyAssembled
 	default:
 	}
 

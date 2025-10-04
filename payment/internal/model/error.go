@@ -3,7 +3,7 @@ package model
 import (
 	"errors"
 
-	sharedErrors "github.com/HeyReyHR/rocket-factory/shared/pkg/errors"
+	sharedErrors "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/grpc/error"
 )
 
 var (

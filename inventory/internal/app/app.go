@@ -11,7 +11,7 @@ import (
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/grpc/health"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	auth "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/grpc"
-	"github.com/HeyReyHR/rocket-factory/shared/pkg/interceptors"
+	error2 "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/grpc/error"
 	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -99,7 +99,7 @@ func (a *App) initListener(_ context.Context) error {
 
 func (a *App) initGRPCServer(ctx context.Context) error {
 	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()),
-		grpc.ChainUnaryInterceptor(interceptors.UnaryErrorInterceptor(), auth.NewAuthInterceptor(a.diContainer.IamClient(ctx)).Unary()))
+		grpc.ChainUnaryInterceptor(error2.UnaryErrorInterceptor(), auth.NewAuthInterceptor(a.diContainer.IamClient(ctx)).Unary()))
 
 	closer.AddNamed("gRPC server", func(ctx context.Context) error {
 		a.grpcServer.GracefulStop()

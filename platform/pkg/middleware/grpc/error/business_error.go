@@ -1,4 +1,4 @@
-package errors
+package error
 
 import (
 	"github.com/go-faster/errors"

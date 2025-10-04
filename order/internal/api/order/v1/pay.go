@@ -13,6 +13,11 @@ func (a *api) PayOrder(ctx context.Context, r *orderV1.OrderPayRequest, params o
 	transactionUuid, err := a.service.Pay(ctx, params.OrderUUID, converter.ReqPaymentMethodToServicePaymentMethod(r.PaymentMethod))
 	if err != nil {
 		switch {
+		case errors.Is(err, model.ErrOrderAlreadyAssembled):
+			return &orderV1.BadRequestError{
+				Code:    400,
+				Message: "Order with UUID" + params.OrderUUID + " already assembled",
+			}, nil
 		case errors.Is(err, model.ErrOrderNotFound):
 			return &orderV1.NotFoundError{
 				Code:    404,

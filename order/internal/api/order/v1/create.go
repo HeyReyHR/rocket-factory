@@ -5,11 +5,14 @@ import (
 	"errors"
 
 	"github.com/HeyReyHR/rocket-factory/order/internal/model"
+	auth "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/grpc"
 	orderV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/openapi/order/v1"
 )
 
 func (a *api) PostOrder(ctx context.Context, r *orderV1.CreateOrderRequest, params orderV1.PostOrderParams) (orderV1.PostOrderRes, error) {
-	uuid, totalPrice, err := a.service.Create(ctx, r.UserUUID, r.PartUuids)
+	authorizedCtx := auth.ForwardSessionUUIDToGRPC(ctx)
+
+	uuid, totalPrice, err := a.service.Create(authorizedCtx, r.UserUUID, r.PartUuids)
 	if err != nil {
 		switch {
 		case errors.Is(err, model.ErrPartOutOfStock):
