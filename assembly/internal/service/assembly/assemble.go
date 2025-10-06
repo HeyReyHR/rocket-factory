@@ -2,15 +2,17 @@ package assembly
 
 import (
 	"context"
+	"math/rand"
 	"time"
 
+	"github.com/HeyReyHR/rocket-factory/assembly/internal/metrics"
 	"github.com/HeyReyHR/rocket-factory/assembly/internal/model"
 	repoModel "github.com/HeyReyHR/rocket-factory/assembly/internal/repository/model"
 	"github.com/google/uuid"
 )
 
 func (s *service) Assemble(ctx context.Context, event model.OrderPaidEvent) error {
-	delay := time.Duration(10) * time.Second
+	delay := time.Duration(rand.Intn(10)) * time.Second
 	time.Sleep(delay)
 
 	eventUuid := uuid.NewString()
@@ -20,5 +22,6 @@ func (s *service) Assemble(ctx context.Context, event model.OrderPaidEvent) erro
 		return err
 	}
 
+	metrics.AssembleDuration.Record(ctx, delay.Seconds())
 	return nil
 }

@@ -6,6 +6,7 @@ import (
 
 	orderV1API "github.com/HeyReyHR/rocket-factory/order/internal/api/order/v1"
 	"github.com/HeyReyHR/rocket-factory/order/internal/client"
+	iamClientV1 "github.com/HeyReyHR/rocket-factory/order/internal/client/iam/v1"
 	invClientV1 "github.com/HeyReyHR/rocket-factory/order/internal/client/inventory/v1"
 	payClientV1 "github.com/HeyReyHR/rocket-factory/order/internal/client/payment/v1"
 	"github.com/HeyReyHR/rocket-factory/order/internal/config"
@@ -25,6 +26,7 @@ import (
 	kafkaMiddleware "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/kafka"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/migrator"
 	orderV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/openapi/order/v1"
+	authV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/auth/v1"
 	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
 	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
 	"github.com/IBM/sarama"
@@ -40,6 +42,7 @@ type diContainer struct {
 
 	inventoryClient client.InventoryClient
 	paymentClient   client.PaymentClient
+	iamClient       client.IamClient
 
 	orderProducerService service.OrderProducerService
 	shipConsumerService  service.ShipConsumerService
@@ -244,4 +247,24 @@ func (d *diContainer) OrderProducer() wrappedKafka.Producer {
 	}
 
 	return d.orderProducer
+}
+
+func (d *diContainer) IamClient(ctx context.Context) client.IamClient {
+	if d.iamClient == nil {
+		connIam, err := grpc.NewClient(
+			config.AppConfig().IamGRPC.Address(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			logger.Error(ctx, "❌ failed to connect to iam service", zap.Error(err))
+			return nil
+		}
+
+		iam := authV1.NewAuthServiceClient(connIam)
+
+		d.iamClient = iamClientV1.NewAuthClient(iam)
+		closer.AddNamed("Iam gRPC client", func(ctx context.Context) error {
+			return connIam.Close()
+		})
+	}
+	return d.iamClient
 }

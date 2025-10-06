@@ -1,0 +1,38 @@
+syntax = "proto3";
+import "common/v1/common.proto";
+
+package user.v1;
+
+option go_package = "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/user/v1;user_v1";
+
+// UserService
+service UserService {
+  rpc Register(RegisterRequest) returns(RegisterResponse);
+  rpc GetUser(GetUserRequest) returns(GetUserResponse);
+}
+
+// UserRegistrationInfo
+message UserRegistrationInfo{
+  common.v1.UserInfo info = 1;
+  string password = 2;
+}
+
+// RegisterRequest
+message RegisterRequest{
+  UserRegistrationInfo info = 1;
+}
+
+// RegisterResponse
+message RegisterResponse{
+  string user_uuid = 1;
+}
+
+// GetUserRequest
+message GetUserRequest{
+  string user_uuid = 1;
+}
+
+// GetUserResponse
+message GetUserResponse {
+  common.v1.User user = 1;
+}

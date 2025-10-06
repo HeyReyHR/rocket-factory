@@ -19,7 +19,7 @@ func (d *decoder) Decode(data []byte) (model.OrderPaidEvent, error) {
 	if err := proto.Unmarshal(data, &pb); err != nil {
 		return model.OrderPaidEvent{}, fmt.Errorf("failed to unmarshal protobuf: %w", err)
 	}
-	
+
 	return model.OrderPaidEvent{
 		EventUuid:       pb.EventUuid,
 		OrderUuid:       pb.OrderUuid,

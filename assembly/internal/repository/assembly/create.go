@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (r *repository) Create(ctx context.Context, uuid string, eventType model.EventType, orderUuid string, userUuid string, buildTimeSec int64) error {
+func (r *repository) Create(ctx context.Context, uuid string, eventType model.EventType, orderUuid, userUuid string, buildTimeSec int64) error {
 	payload := map[string]interface{}{
 		"order_uuid":     orderUuid,
 		"user_uuid":      userUuid,

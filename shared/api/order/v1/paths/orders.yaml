@@ -1,3 +1,10 @@
+parameters:
+  - name: X-Session-UUID
+    in: header
+    description: Session UUID for user context
+    required: true
+    schema:
+      type: string
 post:
   summary: Requests an order
   operationId: PostOrder
@@ -22,6 +29,12 @@ post:
         application/json:
           schema:
             $ref: "../components/errors/bad_request_error.yaml"
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/unauthorized_error.yaml"
     '500':
       description: Internal server error
       content:

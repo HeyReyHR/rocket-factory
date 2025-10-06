@@ -2,7 +2,9 @@ package order
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/HeyReyHR/rocket-factory/order/internal/metrics"
 	"github.com/HeyReyHR/rocket-factory/order/internal/model"
 	"github.com/HeyReyHR/rocket-factory/order/internal/repository/converter"
 	gUuid "github.com/google/uuid"
@@ -10,6 +12,7 @@ import (
 
 func (s *service) Pay(ctx context.Context, uuid string, paymentMethod model.PaymentMethod) (string, error) {
 	order, err := s.orderRepository.Get(ctx, uuid)
+	fmt.Println(order)
 	if err != nil {
 		return "", model.ErrOrderNotFound
 	}
@@ -18,6 +21,8 @@ func (s *service) Pay(ctx context.Context, uuid string, paymentMethod model.Paym
 		return "", model.ErrAlreadyPaid
 	case model.CANCELLED:
 		return "", model.ErrOrderCancelled
+	case model.ASSEMBLED:
+		return "", model.ErrOrderAlreadyAssembled
 	default:
 	}
 
@@ -35,10 +40,11 @@ func (s *service) Pay(ctx context.Context, uuid string, paymentMethod model.Paym
 	order.Status = model.PAID
 
 	err = s.orderRepository.Update(ctx, uuid, converter.ServiceOrderToRepoOrder(order))
-
 	if err != nil {
 		return "", err
 	}
+
+	metrics.OrdersRevenueTotal.Add(ctx, order.TotalPrice)
 
 	err = s.orderProducerService.ProduceOrderPaid(ctx, model.OrderPaidEvent{
 		EventUuid:       gUuid.NewString(),

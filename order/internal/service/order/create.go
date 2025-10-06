@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/HeyReyHR/rocket-factory/order/internal/metrics"
 	"github.com/HeyReyHR/rocket-factory/order/internal/model"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	"github.com/google/uuid"
@@ -29,7 +30,7 @@ func (s *service) Create(ctx context.Context, userUuid string, partUuids []strin
 	for _, part := range resp {
 		fmt.Println(part)
 		if part.StockQuantity == 0 {
-			logger.Info(ctx, fmt.Sprintf("Part with uuid %s is out of stock", part.Uuid))
+			logger.Info(ctx, "Part with uuid %s is out of stock", zap.String("partUuid", part.Uuid))
 			return "", 0, model.ErrPartOutOfStock
 		}
 	}
@@ -45,5 +46,8 @@ func (s *service) Create(ctx context.Context, userUuid string, partUuids []strin
 	if err != nil {
 		return "", 0, err
 	}
+
+	metrics.OrdersTotal.Add(ctx, 1)
+
 	return newUuid, totalPrice, nil
 }

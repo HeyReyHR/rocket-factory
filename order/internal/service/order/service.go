@@ -16,7 +16,6 @@ type service struct {
 }
 
 func NewService(inventory client.InventoryClient, payment client.PaymentClient, orderRepository repository.OrderRepository, orderProducerService serviceInterface.OrderProducerService) *service {
-	
 	return &service{
 		inventory:            inventory,
 		payment:              payment,

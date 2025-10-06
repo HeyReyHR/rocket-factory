@@ -13,6 +13,7 @@ type config struct {
 	Logger                 LoggerConfig
 	Kafka                  KafkaConfig
 	Postgres               PostgresConfig
+	Metrics                MetricsConfig
 	OrderAssembledProducer OrderAssembledProducerConfig
 	OrderPaidConsumer      OrderPaidConsumerConfig
 }
@@ -29,6 +30,11 @@ func Load(path ...string) error {
 	}
 
 	postgresCfg, err := env.NewPostgresConfig()
+	if err != nil {
+		return err
+	}
+
+	metricsCfg, err := env.NewMetricsConfig()
 	if err != nil {
 		return err
 	}
@@ -52,6 +58,7 @@ func Load(path ...string) error {
 		Logger:                 loggerCfg,
 		Kafka:                  kafkaCfg,
 		Postgres:               postgresCfg,
+		Metrics:                metricsCfg,
 		OrderAssembledProducer: orderAssembledProducerCfg,
 		OrderPaidConsumer:      orderPaidConsumerCfg,
 	}

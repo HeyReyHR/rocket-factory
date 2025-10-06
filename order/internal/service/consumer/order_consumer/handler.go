@@ -2,7 +2,6 @@ package order_consumer
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/HeyReyHR/rocket-factory/order/internal/model"
@@ -32,7 +31,6 @@ func (s *service) ShipHandler(ctx context.Context, msg kafka.Message) error {
 		return err
 	}
 	order.Status = model.ASSEMBLED
-	fmt.Println(order, converter.ServiceOrderToRepoOrder(order))
 	err = s.repository.Update(ctx, order.Uuid, converter.ServiceOrderToRepoOrder(order))
 	if err != nil {
 		logger.Error(ctx, "Failed to update status", zap.Error(err))

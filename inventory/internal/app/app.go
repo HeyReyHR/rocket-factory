@@ -10,7 +10,8 @@ import (
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/grpc/health"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
-	"github.com/HeyReyHR/rocket-factory/shared/pkg/interceptors"
+	auth "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/grpc"
+	error2 "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/grpc/error"
 	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -66,6 +67,9 @@ func (a *App) initLogger(_ context.Context) error {
 	return logger.Init(
 		config.AppConfig().Logger.Level(),
 		config.AppConfig().Logger.AsJson(),
+		config.AppConfig().Logger.EnableOTLP(),
+		config.AppConfig().Logger.OTLPEnvironment(),
+		config.AppConfig().Logger.OTLPServiceName(),
 	)
 }
 
@@ -95,7 +99,7 @@ func (a *App) initListener(_ context.Context) error {
 
 func (a *App) initGRPCServer(ctx context.Context) error {
 	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()),
-		grpc.UnaryInterceptor(interceptors.UnaryErrorInterceptor())) // TODO BETTER ERRORS
+		grpc.ChainUnaryInterceptor(error2.UnaryErrorInterceptor(), auth.NewAuthInterceptor(a.diContainer.IamClient(ctx)).Unary()))
 
 	closer.AddNamed("gRPC server", func(ctx context.Context) error {
 		a.grpcServer.GracefulStop()

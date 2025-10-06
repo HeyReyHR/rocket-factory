@@ -260,3 +260,59 @@ func decodePayOrderParams(args [1]string, argsEscaped bool, r *http.Request) (pa
 	}
 	return params, nil
 }
+
+// PostOrderParams is parameters of PostOrder operation.
+type PostOrderParams struct {
+	// Session UUID for user context.
+	XSessionUUID string
+}
+
+func unpackPostOrderParams(packed middleware.Parameters) (params PostOrderParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "X-Session-UUID",
+			In:   "header",
+		}
+		params.XSessionUUID = packed[key].(string)
+	}
+	return params
+}
+
+func decodePostOrderParams(args [0]string, argsEscaped bool, r *http.Request) (params PostOrderParams, _ error) {
+	h := uri.NewHeaderDecoder(r.Header)
+	// Decode header: X-Session-UUID.
+	if err := func() error {
+		cfg := uri.HeaderParameterDecodingConfig{
+			Name:    "X-Session-UUID",
+			Explode: false,
+		}
+		if err := h.HasParam(cfg); err == nil {
+			if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.XSessionUUID = c
+				return nil
+			}); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "X-Session-UUID",
+			In:   "header",
+			Err:  err,
+		}
+	}
+	return params, nil
+}

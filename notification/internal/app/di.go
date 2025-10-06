@@ -76,8 +76,8 @@ func (d *diContainer) OrderPaidConsumer() wrappedKafka.Consumer {
 }
 
 func (d *diContainer) OrderAssembledConsumer() wrappedKafka.Consumer {
-	if d.orderPaidConsumer == nil {
-		d.orderPaidConsumer = wrappedKafkaConsumer.NewConsumer(
+	if d.orderAssembledConsumer == nil {
+		d.orderAssembledConsumer = wrappedKafkaConsumer.NewConsumer(
 			d.OrderAssembledConsumerGroup(),
 			[]string{
 				config.AppConfig().OrderAssembledConsumer.Topic(),
@@ -87,7 +87,7 @@ func (d *diContainer) OrderAssembledConsumer() wrappedKafka.Consumer {
 		)
 	}
 
-	return d.orderPaidConsumer
+	return d.orderAssembledConsumer
 }
 
 func (d *diContainer) OrderPaidConsumerGroup() sarama.ConsumerGroup {

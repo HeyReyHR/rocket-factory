@@ -27,7 +27,6 @@ func NewService(orderPaidConsumer kafka.Consumer, orderPaidDecoder kafkaConverte
 func (s *service) RunConsumer(ctx context.Context) error {
 	logger.Info(ctx, "Starting assembly orderPaidConsumer service")
 	err := s.orderPaidConsumer.Consume(ctx, s.OrderHandler)
-
 	if err != nil {
 		logger.Error(ctx, "Consume from order.paid topic error", zap.Error(err))
 		return err

@@ -566,6 +566,16 @@ func (s *Server) handlePostOrderRequest(args [0]string, argsEscaped bool, w http
 			ID:   "PostOrder",
 		}
 	)
+	params, err := decodePostOrderParams(args, argsEscaped, r)
+	if err != nil {
+		err = &ogenerrors.DecodeParamsError{
+			OperationContext: opErrContext,
+			Err:              err,
+		}
+		defer recordError("DecodeParams", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
 	request, close, err := s.decodePostOrderRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
@@ -590,13 +600,18 @@ func (s *Server) handlePostOrderRequest(args [0]string, argsEscaped bool, w http
 			OperationSummary: "Requests an order",
 			OperationID:      "PostOrder",
 			Body:             request,
-			Params:           middleware.Parameters{},
-			Raw:              r,
+			Params: middleware.Parameters{
+				{
+					Name: "X-Session-UUID",
+					In:   "header",
+				}: params.XSessionUUID,
+			},
+			Raw: r,
 		}
 
 		type (
 			Request  = *CreateOrderRequest
-			Params   = struct{}
+			Params   = PostOrderParams
 			Response = PostOrderRes
 		)
 		response, err = middleware.HookMiddleware[
@@ -606,14 +621,14 @@ func (s *Server) handlePostOrderRequest(args [0]string, argsEscaped bool, w http
 		](
 			m,
 			mreq,
-			nil,
+			unpackPostOrderParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.PostOrder(ctx, request)
+				response, err = s.h.PostOrder(ctx, request, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.PostOrder(ctx, request)
+		response, err = s.h.PostOrder(ctx, request, params)
 	}
 	if err != nil {
 		if errRes, ok := errors.Into[*GenericErrorStatusCode](err); ok {

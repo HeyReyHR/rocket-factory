@@ -413,6 +413,20 @@ tasks:
       - echo "[task] 🛑 Останавливаем Order с зависимостями"
       - docker compose down --volumes
 
+  up-iam:
+    desc: Поднять Iam сервис и все его зависимости
+    dir: deploy/compose/iam
+    cmds:
+      - echo "[task] 📦 Поднимаем Iam с зависимостями"
+      - docker compose up --build --detach
+
+  down-iam:
+    desc: Остановить и удалить Iam сервис и все его зависимости
+    dir: deploy/compose/iam
+    cmds:
+      - echo "[task] 🛑 Останавливаем Iam с зависимостями"
+      - docker compose down --volumes
+
   up-assembly:
     desc: Поднять Assembly сервис и все его зависимости
     dir: deploy/compose/assembly
