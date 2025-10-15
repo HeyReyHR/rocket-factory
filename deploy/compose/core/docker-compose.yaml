@@ -301,6 +301,7 @@ services: # Раздел, в котором описываются все кон
     # (добавляет метаданные, группирует в батчи) и отправляет в Elasticsearch.
     # Это промежуточный слой между приложениями и системой хранения.
 
+
   prometheus: # Сервис Prometheus для сбора и хранения метрик
     image: prom/prometheus:v3.3.1 # Используем официальный образ Prometheus последней стабильной версии
     container_name: prometheus # Явное имя контейнера
@@ -357,7 +358,31 @@ services: # Раздел, в котором описываются все кон
       - microservices-net
       # Подключаем контейнер к общей сети микросервисов
 
-
+  jaeger: # Сервис Jaeger для распределенной трассировки
+    image: jaegertracing/jaeger:2.6.0 # Последняя стабильная версия Jaeger v2
+    container_name: jaeger # Имя контейнера для удобного обращения
+    ports:
+      - "${JAEGER_UI_PORT}:16686" # Порт для веб-интерфейса Jaeger UI
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true # Включаем поддержку протокола OpenTelemetry
+      - STORAGE_TYPE=badger # Используем Badger как хранилище данных (встроенная key-value БД)
+      - BADGER_EPHEMERAL=false # Сохраняем данные на диск между перезапусками
+      - BADGER_DIRECTORY_VALUE=/badger/data # Директория для хранения значений (спаны, теги, логи)
+      - BADGER_DIRECTORY_KEY=/badger/key # Директория для хранения индексов (для быстрого поиска)
+    volumes:
+      - jaeger_data:/badger/data # Том для хранения данных трейсов
+      - jaeger_key:/badger/key # Том для хранения индексов
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "localhost:${JAEGER_UI_PORT}" ] # Проверка доступности UI
+      interval: 5s # Интервал проверки
+      timeout: 3s # Таймаут проверки
+      retries: 3 # Количество попыток
+      start_period: 5s # Время ожидания перед началом проверок
+    restart: unless-stopped
+    # Автоматически перезапускаем контейнер при сбоях, но не при ручной остановке
+    networks:
+      - microservices-net
+      # Подключаем контейнер к общей сети микросервисов
   otel-collector:
       # Официальный образ OTel Collector с дополнительными компонентами
       # contrib версия включает экспортеры для разных систем (Elasticsearch, Prometheus, etc.)
@@ -399,6 +424,9 @@ volumes: # Раздел с определением томов
   # ДАННЫЕ ELASTICSEARCH: индексы, логи, метаданные
   # Данные сохраняются на диске хоста и не удаляются при docker-compose down
   es_data:
+  jaeger_data: # Именованный том для хранения данных Jaeger
+  # Хранит данные трассировки
+  jaeger_key: # Именованный том для хранения ключей Jaeger
   prometheus_data: # Именованный том для хранения данных Prometheus
   # Хранит временные ряды с метриками
   grafana_data: # Именованный том для хранения данных Grafana

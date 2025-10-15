@@ -27,8 +27,8 @@ func InitMetrics() error {
 	}
 
 	OrdersRevenueTotal, err = meter.Float64Counter(
-		"orders_revenue",
-		metric.WithUnit("money"),
+		"orders_revenue_total",
+		metric.WithUnit("revenue"),
 		metric.WithDescription("Total order revenue"))
 	if err != nil {
 		return err

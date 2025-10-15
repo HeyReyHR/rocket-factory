@@ -17,7 +17,7 @@ func InitMetrics() error {
 	var err error
 
 	AssembleDuration, err = meter.Float64Histogram(
-		"order_assemble_duration_seconds",
+		"assemble_time",
 		metric.WithUnit("s"),
 		metric.WithExplicitBucketBoundaries(
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 10))

@@ -18,6 +18,7 @@ type config struct {
 	Postgres              PostgresConfig
 	Metrics               MetricsConfig
 	IamGRPC               ServiceConfig
+	Tracing               TracingConfig
 	OrderPaidProducer     OrderPaidProducerConfig
 	ShipAssembledConsumer ShipAssembledConsumerConfig
 }
@@ -63,6 +64,11 @@ func Load(path ...string) error {
 		return err
 	}
 
+	tracingCfg, err := env.NewTracingConfig()
+	if err != nil {
+		return err
+	}
+
 	kafkaCfg, err := env.NewKafkaConfig()
 	if err != nil {
 		return err
@@ -87,6 +93,7 @@ func Load(path ...string) error {
 		Postgres:              postgresCfg,
 		Kafka:                 kafkaCfg,
 		Metrics:               metricsCfg,
+		Tracing:               tracingCfg,
 		OrderPaidProducer:     orderPaidProducerCfg,
 		ShipAssembledConsumer: shipAssembledConsumerCfg,
 	}
