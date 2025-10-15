@@ -25,6 +25,7 @@ import (
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	kafkaMiddleware "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/kafka"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/migrator"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/tracing"
 	orderV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/openapi/order/v1"
 	authV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/auth/v1"
 	invV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/inventory/v1"
@@ -81,11 +82,12 @@ func (d *diContainer) OrderService(ctx context.Context) service.OrderService {
 	return d.orderService
 }
 
-func (d *diContainer) PaymentClient(ctx context.Context) client.PaymentClient { // Ревьюверу: контекст нужен или удалить нах?
+func (d *diContainer) PaymentClient(ctx context.Context) client.PaymentClient {
 	if d.paymentClient == nil {
 		connPay, err := grpc.NewClient(
 			config.AppConfig().PaymentGRPC.Address(),
-			grpc.WithTransportCredentials(insecure.NewCredentials()))
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(tracing.UnaryClientInterceptor("payment-service")))
 		if err != nil {
 			logger.Error(ctx, "❌ failed to connect to payment service", zap.Error(err))
 		}

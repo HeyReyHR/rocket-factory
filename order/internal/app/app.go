@@ -14,6 +14,7 @@ import (
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/metrics"
 	auth "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/http"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/tracing"
 	orderV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/openapi/order/v1"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -78,6 +79,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initCloser,
 		a.initMetricsProvider,
 		a.initMetrics,
+		a.initTracing,
 		a.initHTTPServer,
 	}
 
@@ -106,8 +108,28 @@ func (a *App) initLogger(_ context.Context) error {
 	)
 }
 
+func (a *App) initTracing(ctx context.Context) error {
+	err := tracing.InitTracer(ctx, config.AppConfig().Tracing)
+	if err != nil {
+		return err
+	}
+
+	closer.AddNamed("tracer", tracing.ShutdownTracer)
+
+	return nil
+}
+
 func (a *App) initMetricsProvider(ctx context.Context) error {
-	return metrics.InitProvider(ctx, config.AppConfig().Metrics)
+	err := metrics.InitProvider(ctx, config.AppConfig().Metrics)
+	if err != nil {
+		return err
+	}
+
+	closer.AddNamed("Metrics provider", func(ctx context.Context) error {
+		return metrics.Shutdown(ctx)
+	})
+
+	return nil
 }
 
 func (a *App) initMetrics(_ context.Context) error {
@@ -130,7 +152,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	r := chi.NewRouter()
 
 	r.Use(auth.NewAuthMiddleware(a.diContainer.IamClient(ctx)).Handle)
-	r.Use(middleware.Recoverer, middleware.Logger)
+	r.Use(middleware.Recoverer, tracing.Handle(config.AppConfig().Tracing.ServiceName()))
 	r.Use(middleware.Timeout(requestTimeout))
 
 	r.Mount("/", orderServer)

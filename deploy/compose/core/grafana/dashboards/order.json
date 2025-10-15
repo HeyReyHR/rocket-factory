@@ -36,7 +36,7 @@
                     "legendFormat": "__auto",
                     "datasource": {
                       "type": "prometheus",
-                      "uid": "prometheus_uid"
+                      "uid": "prometheus-uid"
                     }
                 }
             ],
@@ -65,11 +65,11 @@
           "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
           "targets": [
               {
-                  "expr": "sum(orders_revenue)",
+                  "expr": "orders_revenue_total",
                   "legendFormat": "__auto",
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "prometheus_uid"
+                    "uid": "prometheus-uid"
                   }
               }
           ],

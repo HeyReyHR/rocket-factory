@@ -36,7 +36,7 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']  # Prometheus слушает на порту 9090
     # Редкий интервал сбора - метрики Prometheus не критичны для бизнеса
-    scrape_interval: 30s
+    scrape_interval: 5s
 
 # =============================================================================
 # ПРАВИЛА АЛЕРТОВ (RULE FILES)

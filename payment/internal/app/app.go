@@ -10,7 +10,8 @@ import (
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/closer"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/grpc/health"
 	"github.com/HeyReyHR/rocket-factory/platform/pkg/logger"
-	error2 "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/grpc/error"
+	errorInterceptor "github.com/HeyReyHR/rocket-factory/platform/pkg/middleware/grpc/error"
+	"github.com/HeyReyHR/rocket-factory/platform/pkg/tracing"
 	payV1 "github.com/HeyReyHR/rocket-factory/shared/pkg/proto/payment/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -72,6 +73,17 @@ func (a *App) initLogger(_ context.Context) error {
 	)
 }
 
+func (a *App) initTracing(ctx context.Context) error {
+	err := tracing.InitTracer(ctx, config.AppConfig().Tracing)
+	if err != nil {
+		return err
+	}
+
+	closer.AddNamed("tracer", tracing.ShutdownTracer)
+
+	return nil
+}
+
 func (a *App) initCloser(_ context.Context) error {
 	closer.SetLogger(logger.Logger())
 	return nil
@@ -98,7 +110,7 @@ func (a *App) initListener(_ context.Context) error {
 
 func (a *App) initGRPCServer(ctx context.Context) error {
 	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()),
-		grpc.UnaryInterceptor(error2.UnaryErrorInterceptor())) // TODO BETTER ERRORS
+		grpc.ChainUnaryInterceptor(errorInterceptor.UnaryErrorInterceptor(), tracing.UnaryServerInterceptor(config.AppConfig().Tracing.ServiceName())))
 
 	closer.AddNamed("gRPC server", func(ctx context.Context) error {
 		a.grpcServer.GracefulStop()

@@ -94,7 +94,16 @@ func (a *App) initLogger(_ context.Context) error {
 }
 
 func (a *App) initMetricsProvider(ctx context.Context) error {
-	return metrics.InitProvider(ctx, config.AppConfig().Metrics)
+	err := metrics.InitProvider(ctx, config.AppConfig().Metrics)
+	if err != nil {
+		return err
+	}
+
+	closer.AddNamed("Metrics provider", func(ctx context.Context) error {
+		return metrics.Shutdown(ctx)
+	})
+
+	return nil
 }
 
 func (a *App) initMetrics(_ context.Context) error {

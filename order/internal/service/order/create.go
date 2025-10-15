@@ -2,7 +2,6 @@ package order
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/HeyReyHR/rocket-factory/order/internal/metrics"
 	"github.com/HeyReyHR/rocket-factory/order/internal/model"
@@ -28,7 +27,6 @@ func (s *service) Create(ctx context.Context, userUuid string, partUuids []strin
 	}
 
 	for _, part := range resp {
-		fmt.Println(part)
 		if part.StockQuantity == 0 {
 			logger.Info(ctx, "Part with uuid %s is out of stock", zap.String("partUuid", part.Uuid))
 			return "", 0, model.ErrPartOutOfStock

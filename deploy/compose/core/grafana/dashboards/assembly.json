@@ -32,17 +32,17 @@
             "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
             "targets": [
                 {
-                    "expr": "assemble_time",
+                    "expr": "assemble_time_seconds_bucket",
                     "legendFormat": "__auto",
                     "datasource": {
                       "type": "prometheus",
-                      "uid": "prometheus_uid"
+                      "uid": "prometheus-uid"
                     }
                 }
             ],
             "fieldConfig": {
               "defaults": {
-                "unit": "seconds",
+                "unit": "s",
                 "min": 0
               }
             },

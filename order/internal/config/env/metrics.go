@@ -7,7 +7,7 @@ import (
 )
 
 type metricsEnvConfig struct {
-	CollectorEndpoint string        `env:"COLLECTOR_ENDPOINT,required"`
+	CollectorEndpoint string        `env:"OTEL_COLLECTOR_ENDPOINT,required"`
 	CollectorInterval time.Duration `env:"COLLECTOR_INTERVAL,required"`
 }
 
